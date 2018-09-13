@@ -35,6 +35,12 @@ moveit_visual_tools::MoveItVisualToolsPtr visual_tools_;
     visual_tools_->trigger();
   }
 
+  void plotPose(Eigen::Affine3d pose)
+  {
+    visual_tools_->publishAxis(pose, rvt::LARGE);
+    visual_tools_->trigger();
+  }
+
   void clear()
   {
     visual_tools_->deleteAllMarkers();
@@ -61,11 +67,18 @@ int main(int argc, char **argv)
     robot.plot(d.visual_tools_, q1);
 
     // try plotting a trajectory point
-    TolerancedNumber x(0.5, 0, 1);
+    TolerancedNumber x(0.5, 0, 1, 5);
     Number y, z(0.1);
     Number rx, ry(1.0), rz;
     TrajectoryPoint tp(x, y, z, rx, ry, rz);
     tp.plot(d.visual_tools_);
+
+    std::vector<Eigen::Affine3d> discrete_poses;
+    discrete_poses = tp.getGridSamples();
+    for (auto p : discrete_poses)
+    {
+      d.plotPose(p);
+    }
 
     ros::Duration(2.0).sleep();
     d.clear();
