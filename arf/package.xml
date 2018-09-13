@@ -1,0 +1,19 @@
+<package>
+  <name>arf</name>
+  <version>0.0.0</version>
+  <description>Acro Robotics Framework</description>
+
+  <maintainer email="jeroen.demaeyer@kuleuven.be">Jeroen De Maeyer</maintainer>
+  <license>Apache2.0</license>
+  <author email="jeroen.demaeyer@kuleuven.be">Jeroen De Maeyer</author>
+
+  <buildtool_depend>catkin</buildtool_depend>
+  <run_depend>arf_demo</run_depend>
+  <run_depend>arf_graph</run_depend>
+  <run_depend>arf_trajectory</run_depend>
+  <run_depend>arf_sampling</run_depend>
+  <run_depend>arf_moveit_wrapper</run_depend>
+  <export>
+    <metapackage/>
+  </export>
+</package>
