@@ -23,10 +23,8 @@ TrajectoryPoint::TrajectoryPoint(Number& x, Number& y, Number& z, Number& rx, Nu
   raw_numbers_[3] = &rx;
   raw_numbers_[4] = &ry;
   raw_numbers_[5] = &rz;
-  nominal_pose_ = Translation3d(x, y, z) *
-        AngleAxisd(rx, Vector3d::UnitZ()) *
-        AngleAxisd(ry, Vector3d::UnitY()) *
-        AngleAxisd(rz, Vector3d::UnitZ());
+  std::vector<double> nominal_values = {x, y, z, rx, ry, rz};
+  nominal_pose_ = valuesToPose(nominal_values);
   
   for (auto n : raw_numbers_)
   {
@@ -34,24 +32,24 @@ TrajectoryPoint::TrajectoryPoint(Number& x, Number& y, Number& z, Number& rx, Nu
   }
 }
 
-std::vector<std::vector<double>> TrajectoryPoint::getGridSamples()
-{
-  return sampler_.getGridSamples();
-}
-
-std::vector<Eigen::Affine3d> TrajectoryPoint::getPoses()
+Eigen::Affine3d TrajectoryPoint::valuesToPose(std::vector<double>& values)
 {
   using namespace Eigen;
-  std::vector<Affine3d> poses;
+  Affine3d t;
+    t = Translation3d(values[0], values[1], values[2]) *
+        AngleAxisd(values[3], Vector3d::UnitZ()) *
+        AngleAxisd(values[4], Vector3d::UnitY()) *
+        AngleAxisd(values[5], Vector3d::UnitZ());
+    return t;
+}
+
+std::vector<Eigen::Affine3d> TrajectoryPoint::getGridSamples()
+{
+  std::vector<Eigen::Affine3d> poses;
 
   for (auto val : sampler_.getGridSamples())
   {
-    Affine3d t;
-    t = Translation3d(val[0], val[1], val[2]) *
-        AngleAxisd(val[3], Vector3d::UnitZ()) *
-        AngleAxisd(val[4], Vector3d::UnitY()) *
-        AngleAxisd(val[5], Vector3d::UnitZ());
-    poses.push_back(t);
+    poses.push_back(valuesToPose(val));
   }
   return poses;
 }

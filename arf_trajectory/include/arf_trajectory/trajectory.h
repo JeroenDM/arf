@@ -43,11 +43,13 @@ class TrajectoryPoint
   Eigen::Affine3d nominal_pose_;
   Sampler sampler_;
 
+  Eigen::Affine3d valuesToPose(std::vector<double>& values);
+
   public:
   TrajectoryPoint(Number& x, Number& y, Number& z, Number& rx, Number& ry, Number& rz);
   ~TrajectoryPoint() = default;
 
-  std::vector<std::vector<double>> getGridSamples();
+  std::vector<Eigen::Affine3d> getGridSamples();
   std::vector<Eigen::Affine3d> getPoses();
   void plot(moveit_visual_tools::MoveItVisualToolsPtr mvt);
 };

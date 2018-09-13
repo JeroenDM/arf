@@ -87,36 +87,23 @@ TEST(TrajectoryPoint, constructor)
   TrajectoryPoint tp(x, y, z, rx, ry, rz);
 }
 
-TEST(TrajectoryPoint, grid)
+TEST(TrajectoryPoint, gridSampling)
 {
   TolerancedNumber x(1, 1, 2, 2);
   Number y(5);
   TolerancedNumber z(1, 1, 3, 3);
   Number rx, ry, rz;
-
   TrajectoryPoint tp(x, y, z, rx, ry, rz);
-  std::vector<std::vector<double>> grid = tp.getGridSamples();
-  printGrid(grid);
+
+  std::vector<Eigen::Affine3d> p;
+  p = tp.getGridSamples();
+
+  for (auto t : p)
+  {
+    std::cout << "Translation: \n" << t.translation() << std::endl;
+    std::cout << "Rotation: \n" << t.rotation() << std::endl;
+  }
 }
-
-// TEST(TrajectoryPoint, getPoses)
-// {
-//   TolerancedNumber x(1, 1, 2, 2);
-//   Number y(5);
-//   TolerancedNumber z(1, 1, 3, 3);
-//   Number rx, ry, rz;
-//   TrajectoryPoint tp(&x, &y, &z, &rx, &ry, &rz);
-//   tp.discretize();
-
-//   std::vector<Eigen::Affine3d> p;
-//   p = tp.getPoses();
-
-//   for (auto t : p)
-//   {
-//     std::cout << "Translation: \n" << t.translation() << std::endl;
-//     std::cout << "Rotation: \n" << t.rotation() << std::endl;
-//   }
-// }
 
 int main(int argc, char **argv)
 {
