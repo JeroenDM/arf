@@ -6,49 +6,35 @@
 #include <moveit_visual_tools/moveit_visual_tools.h>
 #include "arf_sampling/sampling.h"
 
-class Number
+struct Number
 {
-protected:
   double nominal_;
+  double lower_bound_, upper_bound_;
+  int num_samples_;
 
-public:
-  Number(double n = 0.0) : nominal_(n) {}
-  ~Number() = default;
-
-  virtual bool hasTolerance()
-  {
-    return false;
-  }
-  virtual double getNominal() { return nominal_; }
-  virtual int getNumSamples() { return 1; }
-  virtual double getLowerBound() { return nominal_; }
-  virtual double getUpperBound() { return nominal_; }
+  Number(double n = 0.0)
+    : nominal_(n), lower_bound_(n), upper_bound_(n), num_samples_(1) {}
 
   operator double() const
   {
     return nominal_;
   }
+
+  protected:
+  Number(double n, double l, double u, int s)
+    : nominal_(n), lower_bound_(l), upper_bound_(u), num_samples_(s) {}
 };
 
-class TolerancedNumber : public Number
+struct TolerancedNumber : public Number
 {
-  double upper_bound_, lower_bound_;
-  int num_samples_;
-
-  void checkInput();
-
-public:
   TolerancedNumber(double n, double l, double u, int s = 10)
-    : Number(n), lower_bound_(l), upper_bound_(u), num_samples_(s)
+    : Number(n, l, u, s)
   {
     checkInput();
   }
-  ~TolerancedNumber() = default;
 
-  bool hasTolerance() { return true; }
-  int getNumSamples() { return num_samples_; }
-  virtual double getLowerBound() { return lower_bound_; }
-  virtual double getUpperBound() { return upper_bound_; }
+  private:
+  void checkInput();
 };
 
 class TrajectoryPoint
@@ -57,7 +43,7 @@ class TrajectoryPoint
   Eigen::Affine3d nominal_pose_;
   Sampler sampler_;
 
-public:
+  public:
   TrajectoryPoint(Number& x, Number& y, Number& z, Number& rx, Number& ry, Number& rz);
   ~TrajectoryPoint() = default;
 

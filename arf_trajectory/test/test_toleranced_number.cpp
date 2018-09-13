@@ -31,12 +31,6 @@ void printGrid(std::vector<std::vector<double>>& grid)
   std::cout << std::endl;
 }
 
-TEST(test_setup, works)
-{
-
-  ASSERT_TRUE(true);
-}
-
 TEST(Number, constructor)
 {
   Number x(3.0);
@@ -47,7 +41,6 @@ TEST(Number, casting)
 {
   Number x(3.0);
   double y = x;
-  EXPECT_FALSE(x.hasTolerance());
   EXPECT_EQ(y, 3.0);
 }
 
@@ -55,7 +48,6 @@ TEST(TolerancedNumber, constructor)
 {
   TolerancedNumber x(0.5, -1, 2);
   TolerancedNumber y(0.5, -1, 2, 6);
-  EXPECT_TRUE(x.hasTolerance());
 }
 
 TEST(TolerancedNumber, wrongInput)
@@ -101,8 +93,6 @@ TEST(TrajectoryPoint, grid)
   Number y(5);
   TolerancedNumber z(1, 1, 3, 3);
   Number rx, ry, rz;
-
-  EXPECT_TRUE(x.hasTolerance());
 
   TrajectoryPoint tp(x, y, z, rx, ry, rz);
   std::vector<std::vector<double>> grid = tp.getGridSamples();

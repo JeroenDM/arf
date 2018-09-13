@@ -30,7 +30,7 @@ TrajectoryPoint::TrajectoryPoint(Number& x, Number& y, Number& z, Number& rx, Nu
   
   for (auto n : raw_numbers_)
   {
-    sampler_.addDimension(n->getNumSamples(), n->getLowerBound(), n->getUpperBound());
+    sampler_.addDimension(n->num_samples_, n->lower_bound_, n->upper_bound_);
   }
 }
 
