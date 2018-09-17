@@ -51,6 +51,7 @@ class TrajectoryPoint
 
   std::vector<Eigen::Affine3d> getGridSamples();
   std::vector<Eigen::Affine3d> getPoses();
+  Eigen::Affine3d getNominalPose() { return nominal_pose_; }
   void plot(moveit_visual_tools::MoveItVisualToolsPtr mvt);
 };
 

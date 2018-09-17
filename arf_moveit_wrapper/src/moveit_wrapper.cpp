@@ -156,7 +156,7 @@ void RobotMoveitWrapper::plot(moveit_visual_tools::MoveItVisualToolsPtr mvt, std
 {
     namespace rvt = rviz_visual_tools;
     kinematic_state_->setJointGroupPositions(joint_model_group_, joint_pose);
-    printCurrentJointValues();
+    //printCurrentJointValues();
     mvt->publishRobotState(kinematic_state_, rvt::DEFAULT);
     mvt->trigger();
 }

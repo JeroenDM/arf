@@ -6,6 +6,8 @@
 
 #include "arf_moveit_wrapper/moveit_wrapper.h"
 #include "arf_trajectory/trajectory.h"
+#include "arf_graph/graph.h"
+#include "arf_graph/util.h"
 
 namespace rvt = rviz_visual_tools;
 
@@ -58,27 +60,103 @@ int main(int argc, char **argv)
     spinner.start();
 
     RobotMoveitWrapper robot;
-    robot.printCurrentJointValues();
-
     Demo d;
-    d.demo1();
+    // robot.printCurrentJointValues();
+    // d.demo1();
+    // std::vector<double> q1 = {0.1, 0.2, 0.3, 0.5, 0.6, 0.7};
+    // robot.plot(d.visual_tools_, q1);
 
-    std::vector<double> q1 = {0.1, 0.2, 0.3, 0.5, 0.6, 0.7};
-    robot.plot(d.visual_tools_, q1);
-
-    // try plotting a trajectory point
-    TolerancedNumber x(0.5, 0, 1, 5);
-    Number y, z(0.1);
-    Number rx, ry(1.0), rz;
-    TrajectoryPoint tp(x, y, z, rx, ry, rz);
-    tp.plot(d.visual_tools_);
-
-    std::vector<Eigen::Affine3d> discrete_poses;
-    discrete_poses = tp.getGridSamples();
-    for (auto p : discrete_poses)
+    // create a path
+    std::vector<TrajectoryPoint> demo_trajectory;
+    for (int i = 0; i < 10; ++i)
     {
-      d.plotPose(p);
+      TolerancedNumber x(0.5, 0.45, 0.55, 5);
+      Number y, z(0.5 + static_cast<double>(i) / 20);
+      Number rx, ry(M_PI_2), rz;
+      TrajectoryPoint tp(x, y, z, rx, ry, rz);
+      demo_trajectory.push_back(tp);
     }
+    // plot path
+    IKSolution sol;
+    for (auto tp : demo_trajectory)
+    {
+      tp.plot(d.visual_tools_);
+      // sol = robot.ik(tp.getNominalPose());
+      // for (auto q_sol : sol)
+      // {
+      //   robot.plot(d.visual_tools_, q_sol);
+      //   ros::Duration(0.1).sleep();
+      // }
+    }
+    ros::Duration(1.0).sleep();
+
+    // IKSolution sol;
+    // for (auto tp : demo_trajectory)
+    // {
+    //   sol = robot.ik(tp.getNominalPose());
+    //   for (auto q_sol : sol)
+    //   {
+    //     robot.plot(d.visual_tools_, q_sol);
+    //     ros::Duration(0.5).sleep();
+    //   }
+    // }
+
+    
+
+    std::vector<std::vector<std::vector<double>>> graph_data;
+    //IKSolution sol;
+
+    for (auto tp : demo_trajectory)
+    {
+      std::vector<std::vector<double>> new_data;
+      for (auto pose : tp.getGridSamples())
+      {
+        for (auto q_sol : robot.ik(pose))
+        {
+          new_data.push_back(q_sol);
+        }
+      }
+      graph_data.push_back(new_data);
+    }
+
+    // create Graph
+    Graph demo_graph(graph_data);
+
+    
+
+    demo_graph.runMultiSourceDijkstra();
+    std::vector<Node*> sp = demo_graph.getShortestPath();
+    std::cout << "Shortest path \n";
+    std::vector<std::vector<double>> shortest_path;
+    for (auto node : sp)
+    {
+      std::cout << (*node) << std::endl;
+      shortest_path.push_back(*(*node).jv);
+    }
+
+    for (auto q : shortest_path)
+    {
+      robot.plot(d.visual_tools_, q);
+      ros::Duration(0.5).sleep();
+    }
+
+    // std::vector<Eigen::Affine3d> discrete_poses;
+    // discrete_poses = tp.getGridSamples();
+    // for (auto p : discrete_poses)
+    // {
+    //   d.plotPose(p);
+    // }
+
+    // IKSolution sol;
+    // sol = robot.ik(tp.getNominalPose());
+    // for (auto q_sol : sol)
+    // {
+    //   if (!robot.isInCollision(q_sol))
+    //   {
+    //     robot.plot(d.visual_tools_, q_sol);
+    //     ros::Duration(0.5).sleep();
+    //   }
+    // }
 
     ros::Duration(2.0).sleep();
     d.clear();

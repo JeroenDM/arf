@@ -19,13 +19,13 @@ template <typename T>
 opw_kinematics::Parameters<T> makeKukaKr5()
 {
   opw_kinematics::Parameters<T> p;
-  p.a1 = T(0.025);
-  p.a2 = T(-0.035);
+  p.a1 = T(0.180);
+  p.a2 = T(-0.120);
   p.b =  T(0.000);
   p.c1 = T(0.400);
-  p.c2 = T(0.315);
-  p.c3 = T(0.365);
-  p.c4 = T(0.080);
+  p.c2 = T(0.600);
+  p.c3 = T(0.620);
+  p.c4 = T(0.115);
 
   p.offsets[1] = -M_PI / 2.0;
   p.sign_corrections[0] = -1;
