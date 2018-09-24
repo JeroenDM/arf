@@ -4,8 +4,14 @@
 #include <string>
 #include <vector>
 
+#include "arf_sampling/sampling.h"
+
 class RedundantRobot : public RobotMoveitWrapper
 {
+    Sampler sampler_;
+
     public:
-    IKSolution redundantIk(const Eigen::Affine3d pose, std::vector<double>& q_fixed);
+    RedundantRobot();
+    IKSolution redundantIk(const Eigen::Affine3d& pose, std::vector<double>& q_fixed);
+    IKSolution ikGridSamples(const Eigen::Affine3d& pose);
 };

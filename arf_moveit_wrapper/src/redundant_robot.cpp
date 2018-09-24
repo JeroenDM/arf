@@ -1,6 +1,39 @@
 #include "arf_moveit_wrapper/redundant_robot.h"
 
-IKSolution RedundantRobot::redundantIk(Eigen::Affine3d pose, std::vector<double>& q_fixed)
+void printGrid(std::vector<std::vector<double>>& grid)
+{
+  if (grid.size() > 0)
+  {
+    std::cout << "===== GRID =======\n";
+    for (auto jv : grid)
+    {
+      std::cout << "( ";
+      for (auto val : jv)
+      {
+        std::cout << val << ", ";
+      }
+      std::cout << ")\n";
+    }
+  }
+  else
+  {
+    std::cout << "===== NO GRID ======";
+  }
+  std::cout << std::endl;
+}
+
+RedundantRobot::RedundantRobot() : RobotMoveitWrapper()
+{
+  ROS_INFO("Configuring redundant joints");
+
+  auto bnd1 = joint_model_group_->getJointModel("y_rail_to_z_rail")->getVariableBounds();
+  auto bnd2 = joint_model_group_->getJointModel("z_rail_to_robot_mount")->getVariableBounds();
+
+  sampler_.addDimension(3, bnd1[0].min_position_, bnd1[0].max_position_);
+  sampler_.addDimension(3, bnd2[0].min_position_, bnd2[0].max_position_);
+}
+
+IKSolution RedundantRobot::redundantIk(const Eigen::Affine3d& pose, std::vector<double>& q_fixed)
 {
 
   // get base frame for 6dof robot ik
@@ -23,4 +56,17 @@ IKSolution RedundantRobot::redundantIk(Eigen::Affine3d pose, std::vector<double>
   }
 
   return solution;
+}
+
+IKSolution RedundantRobot::ikGridSamples(const Eigen::Affine3d& pose)
+{
+  IKSolution all_ik_sols, temp_ik_sol;
+  auto fixed_joints_sampels = sampler_.getGridSamples();
+  for (auto q_fixed : fixed_joints_sampels)
+  {
+    temp_ik_sol = redundantIk(pose, q_fixed);
+    if (temp_ik_sol.size() > 0)
+      all_ik_sols.insert(all_ik_sols.begin(), temp_ik_sol.begin(), temp_ik_sol.end());
+  }
+  return all_ik_sols;
 }

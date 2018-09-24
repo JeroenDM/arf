@@ -13,6 +13,7 @@ find_package(catkin REQUIRED COMPONENTS
   moveit_ros_planning
   moveit_visual_tools
   opw_kinematics
+  arf_sampling
 )
 
 find_package(Eigen3 REQUIRED)

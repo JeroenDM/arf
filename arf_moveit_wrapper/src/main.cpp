@@ -47,7 +47,7 @@ int main(int argc, char **argv)
     auto fk_pose = robot.fk(q1, "tool_tip");
 
     // move the fk_pose closer to robot
-    Eigen::Vector3d p1(0.2, 0, -0.2);
+    Eigen::Vector3d p1(0.3, 0.5, -0.3);
     fk_pose.translate(p1);
 
     // visualize fk_pose
@@ -59,7 +59,8 @@ int main(int argc, char **argv)
     // set values for fixed joints = y- and z-rail
     std::vector<double> q_fixed = {0, 0};
     
-    auto ik_sol = robot.redundantIk(fk_pose, q_fixed);
+    //auto ik_sol = robot.redundantIk(fk_pose, q_fixed);
+    auto ik_sol = robot.ikGridSamples(fk_pose);
 
     // show ik solutions
     if (ik_sol.size() > 0)
