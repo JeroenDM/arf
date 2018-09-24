@@ -40,7 +40,7 @@ include_directories(
 
 # Declare a C++ library
 add_library(${PROJECT_NAME}
-  src/moveit_wrapper.cpp
+  src/moveit_wrapper.cpp src/redundant_robot.cpp
 )
 
 ## Add cmake target dependencies of the library

@@ -40,6 +40,7 @@ typedef std::vector<std::vector<double>> IKSolution;
 
 class RobotMoveitWrapper
 {
+protected:
     robot_model::RobotModelPtr kinematic_model_; /**< Kinematic description of the robot. */
     robot_state::RobotStatePtr kinematic_state_; /**< Kinematic state of the robot */
     const robot_state::JointModelGroup* joint_model_group_; /**< Pointer to planning group */
