@@ -69,9 +69,9 @@ bool RobotMoveitWrapper::isInCollision(const std::vector<double>& joint_pose) co
   bool in_collision = false;
   if (check_collisions_)
   {
-    ROS_INFO("Checking for collision.");
+    //ROS_INFO("Checking for collision.");
 
-    planning_scene_->printKnownObjects(std::cout);
+    //planning_scene_->printKnownObjects(std::cout);
 
     kinematic_state_->setJointGroupPositions(joint_model_group_, joint_pose);
     in_collision = planning_scene_->isStateColliding(*kinematic_state_);

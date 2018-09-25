@@ -117,7 +117,8 @@ void Demo1::createGraphData(Robot& robot)
     {
       for (auto q_sol : robot.ik(pose))
       {
-        new_data.push_back(q_sol);
+        if (!robot.isInCollision(q_sol))
+          new_data.push_back(q_sol);
       }
     }
     graph_data_.push_back(new_data);

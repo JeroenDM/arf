@@ -77,6 +77,7 @@ include_directories(
 ## With catkin_make all packages are built within a single CMake context
 ## The recommended prefix ensures that target names across packages don't collide
 add_executable(${PROJECT_NAME}_demo src/demo.cpp)
+add_executable(${PROJECT_NAME}_demo2 src/demo2.cpp)
 
 
 ## Rename C++ executable without prefix
@@ -84,6 +85,7 @@ add_executable(${PROJECT_NAME}_demo src/demo.cpp)
 ## target back to the shorter version for ease of user use
 ## e.g. "rosrun someones_pkg node" instead of "rosrun someones_pkg someones_pkg_node"
 set_target_properties(${PROJECT_NAME}_demo PROPERTIES OUTPUT_NAME demo PREFIX "")
+set_target_properties(${PROJECT_NAME}_demo2 PROPERTIES OUTPUT_NAME demo2 PREFIX "")
 
 ## Add cmake target dependencies of the executable
 ## same as for the library above
@@ -91,6 +93,9 @@ set_target_properties(${PROJECT_NAME}_demo PROPERTIES OUTPUT_NAME demo PREFIX ""
 
 ## Specify libraries to link a library or executable target against
 target_link_libraries(${PROJECT_NAME}_demo
+  ${catkin_LIBRARIES}
+)
+target_link_libraries(${PROJECT_NAME}_demo2
   ${catkin_LIBRARIES}
 )
 

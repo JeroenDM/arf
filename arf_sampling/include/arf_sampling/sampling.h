@@ -1,3 +1,5 @@
+#ifndef _SAMPLING_H_
+#define _SAMPLING_H_
 
 #include <iostream>
 #include <vector>
@@ -18,3 +20,5 @@ public:
   void recursiveGridSampling(int index, std::vector<double> prev_values, std::vector<std::vector<double>>& grid);
   std::vector<std::vector<double>> getGridSamples();
 };
+
+#endif

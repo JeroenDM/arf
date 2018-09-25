@@ -1,3 +1,6 @@
+#ifndef _RED_ROBOT_H
+#define _RED_ROBOT_H
+
 #include "arf_moveit_wrapper/moveit_wrapper.h"
 
 #include <Eigen/Dense>
@@ -15,3 +18,5 @@ class RedundantRobot : public RobotMoveitWrapper
     IKSolution redundantIk(const Eigen::Affine3d& pose, std::vector<double>& q_fixed);
     IKSolution ikGridSamples(const Eigen::Affine3d& pose);
 };
+
+#endif

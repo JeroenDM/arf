@@ -1,3 +1,6 @@
+#ifndef _UTIL_H_
+#define _UTIL_H_
+
 #include <iostream>
 
 #include "arf_graph/graph.h"
@@ -42,3 +45,5 @@ std::ostream& operator<<(std::ostream& os, const Graph& graph)
   os << "-----------------------";
   return os;
 }
+
+#endif
