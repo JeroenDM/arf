@@ -4,12 +4,16 @@
 #include <exception>
 
 #include <moveit_visual_tools/moveit_visual_tools.h>
+#include <trajectory_msgs/JointTrajectory.h>
+#include <trajectory_msgs/JointTrajectoryPoint.h>
+#include <geometry_msgs/Pose.h>
 
 //#include "arf_moveit_wrapper/moveit_wrapper.h"
 #include "arf_moveit_wrapper/redundant_robot.h"
 #include "arf_trajectory/trajectory.h"
 #include "arf_graph/graph.h"
 #include "arf_graph/util.h"
+#include "arf_planning/planner.h"
 
 namespace rvt = rviz_visual_tools;
 
@@ -33,18 +37,14 @@ public:
     visual_tools_->deleteAllMarkers();
     visual_tools_->trigger();
   }
-};
-
-class Demo2
-{
-  std::vector<std::vector<std::vector<double>>> graph_data_;
-  std::vector<TrajectoryPoint> ee_trajectory_;
-  std::vector<std::vector<double>> shortest_path_;
-public:
-  void createAndShowTrajectory(Rviz& rviz);
-  void createGraphData(RedundantRobot& robot);
-  void calculateShortestPath(RedundantRobot& robot);
-  void showShortestPath(RedundantRobot& robot, Rviz& rviz);
+  void animatePath(RedundantRobot& robot, std::vector<std::vector<double>> path)
+  {
+    for (auto q : path)
+    {
+      robot.plot(visual_tools_, q);
+      ros::Duration(0.5).sleep();
+    }
+}
 };
 
 int main(int argc, char **argv)
@@ -56,16 +56,16 @@ int main(int argc, char **argv)
 
     ROS_INFO("Demo 2");
 
-
     RedundantRobot robot;
     Rviz rviz;
-    rviz.clear();
+    Planner planner;
 
-    Demo2 demo;
-    demo.createAndShowTrajectory(rviz);
-    demo.createGraphData(robot);
-    demo.calculateShortestPath(robot);
-    demo.showShortestPath(robot, rviz);
+    planner.createTrajectory();
+    planner.createGraphData(robot);
+    planner.calculateShortestPath(robot);
+
+    auto shortest_path = planner.getShortestPath();
+    rviz.animatePath(robot, shortest_path);
 
     // // calculate forward kinematics to get reachable pose
     // std::vector<double> q1 = {0.0, 0.0, 0, 0, 0, 0, 0, 0};
@@ -106,66 +106,4 @@ int main(int argc, char **argv)
     ros::shutdown();
     
     return 0;
-}
-
-void Demo2::createAndShowTrajectory(Rviz& rviz)
-{
-  for (int i = 0; i < 10; ++i)
-  {
-    TolerancedNumber x(1.0, 0.95, 1.05, 5);
-    // Number y, z(0.5 + static_cast<double>(i) / 20);
-    Number y(static_cast<double>(i) / 20), z(0.5);
-    Number rx, ry(M_PI), rz;
-    TrajectoryPoint tp(x, y, z, rx, ry, rz);
-    ee_trajectory_.push_back(tp);
-  }
-  for (auto tp : ee_trajectory_)
-  {
-    tp.plot(rviz.visual_tools_);
-  }
-}
-
-void Demo2::createGraphData(RedundantRobot& robot)
-{
-  for (auto tp : ee_trajectory_)
-  {
-    std::vector<std::vector<double>> new_data;
-    for (auto pose : tp.getGridSamples())
-    {
-      for (auto q_sol : robot.ikGridSamples(pose))
-      {
-        if (!robot.isInCollision(q_sol))
-            new_data.push_back(q_sol);
-      }
-    }
-    if (new_data.size() == 0)
-    {
-        ROS_ERROR("No collision free ik sol found for a tp");
-        throw std::runtime_error("No ik found");
-    }
-    ROS_INFO_STREAM("Found collision free solutions: " << new_data.size());
-    graph_data_.push_back(new_data);
-  }
-}
-
-void Demo2::calculateShortestPath(RedundantRobot& robot)
-{
-  Graph demo_graph(graph_data_);
-  demo_graph.runMultiSourceDijkstra();
-  std::vector<Node*> sp = demo_graph.getShortestPath();
-  std::cout << "Shortest path \n";
-  for (auto node : sp)
-  {
-    std::cout << (*node) << std::endl;
-    shortest_path_.push_back(*(*node).jv);
-  }
-}
-
-void Demo2::showShortestPath(RedundantRobot& robot, Rviz& rviz)
-{
-  for (auto q : shortest_path_)
-  {
-    robot.plot(rviz.visual_tools_, q);
-    ros::Duration(0.5).sleep();
-  }
 }

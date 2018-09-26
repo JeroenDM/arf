@@ -14,6 +14,7 @@ find_package(catkin REQUIRED COMPONENTS
   arf_trajectory
   opw_kinematics
   moveit_visual_tools
+  arf_planning
 )
 
 ################################################

@@ -24,7 +24,7 @@ endif()
 catkin_package(
   INCLUDE_DIRS include
   LIBRARIES arf_moveit_wrapper
-  CATKIN_DEPENDS moveit_core moveit_ros_planning roscpp
+  CATKIN_DEPENDS moveit_core moveit_ros_planning roscpp opw_kinematics
   DEPENDS EIGEN3
 )
 
