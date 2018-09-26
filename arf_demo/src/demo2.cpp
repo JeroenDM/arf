@@ -7,6 +7,7 @@
 #include <trajectory_msgs/JointTrajectory.h>
 #include <trajectory_msgs/JointTrajectoryPoint.h>
 #include <geometry_msgs/Pose.h>
+#include <moveit/move_group_interface/move_group_interface.h>
 
 //#include "arf_moveit_wrapper/moveit_wrapper.h"
 #include "arf_moveit_wrapper/redundant_robot.h"
@@ -47,6 +48,21 @@ public:
 }
 };
 
+std::vector<TrajectoryPoint> createTrajectory()
+{
+  std::vector<TrajectoryPoint> ee_trajectory;
+  for (int i = 0; i < 10; ++i)
+  {
+    TolerancedNumber x(1.0, 0.95, 1.05, 5);
+    // Number y, z(0.5 + static_cast<double>(i) / 20);
+    Number y(static_cast<double>(i) / 20), z(0.5);
+    Number rx, ry(M_PI), rz;
+    TrajectoryPoint tp(x, y, z, rx, ry, rz);
+    ee_trajectory.push_back(tp);
+  }
+  return ee_trajectory;
+}
+
 int main(int argc, char **argv)
 {
     ros::init(argc, argv, "test_moveit_wrapper");
@@ -60,12 +76,52 @@ int main(int argc, char **argv)
     Rviz rviz;
     Planner planner;
 
-    planner.createTrajectory();
+    auto traj = createTrajectory();
+    for (auto tp : traj)
+    {
+      tp.plot(rviz.visual_tools_);
+    }
+
+    planner.setTrajectory(traj);
     planner.createGraphData(robot);
     planner.calculateShortestPath(robot);
 
     auto shortest_path = planner.getShortestPath();
-    rviz.animatePath(robot, shortest_path);
+    //rviz.animatePath(robot, shortest_path);
+
+    moveit::planning_interface::MoveGroupInterface move_group("manipulator");
+
+    move_group.setJointValueTarget(shortest_path[0]);
+
+    moveit::planning_interface::MoveGroupInterface::Plan plan1;
+
+    bool success = (move_group.plan(plan1) == moveit::planning_interface::MoveItErrorCode::SUCCESS);
+    ROS_INFO_NAMED("tutorial", "Visualizing plan 1 (joint space goal) %s", success ? "" : "FAILED");
+
+    //trajectory_msgs::JointTrajectory weld_trajectory;
+    int N = plan1.trajectory_.joint_trajectory.points.size();
+    ros::Duration start_time = plan1.trajectory_.joint_trajectory.points[N-1].time_from_start;
+    ROS_INFO_STREAM("Start time welding: " <<  start_time);
+    for (auto q_sol : shortest_path)
+    {
+      trajectory_msgs::JointTrajectoryPoint new_point;
+      new_point.positions = q_sol;
+      start_time += ros::Duration(0.1);
+      new_point.time_from_start = start_time;
+      plan1.trajectory_.joint_trajectory.points.push_back(new_point);
+    }
+
+    move_group.execute(plan1);
+
+    ROS_INFO_STREAM("Plan: " << plan1.trajectory_);
+
+    move_group.setNamedTarget("allZeros");
+    success = (move_group.plan(plan1) == moveit::planning_interface::MoveItErrorCode::SUCCESS);
+    ROS_INFO_NAMED("tutorial", "Visualizing plan 22(joint space goal) %s", success ? "" : "FAILED");
+    move_group.execute(plan1);
+
+
+    
 
     // // calculate forward kinematics to get reachable pose
     // std::vector<double> q1 = {0.0, 0.0, 0, 0, 0, 0, 0, 0};

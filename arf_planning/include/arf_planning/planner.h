@@ -15,7 +15,7 @@ class Planner {
   std::vector<std::vector<double>> shortest_path_;
 public:
   Planner();
-  void createTrajectory();
+  void setTrajectory(std::vector<TrajectoryPoint>& traj) { ee_trajectory_ = traj; }
   void createGraphData(RedundantRobot& robot);
   void calculateShortestPath(RedundantRobot& robot);
   std::vector<std::vector<double>> getShortestPath() { return shortest_path_; }

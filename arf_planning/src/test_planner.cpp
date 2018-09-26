@@ -3,6 +3,5 @@
 int main(int argc, char **argv)
 {
   Planner planner;
-  planner.createTrajectory();
   return 0;
 }

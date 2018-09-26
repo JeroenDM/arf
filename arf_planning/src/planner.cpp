@@ -9,19 +9,6 @@ Planner::Planner()
   ROS_INFO("Created planner");
 }
 
-void Planner::createTrajectory()
-{
-  for (int i = 0; i < 10; ++i)
-  {
-    TolerancedNumber x(1.0, 0.95, 1.05, 5);
-    // Number y, z(0.5 + static_cast<double>(i) / 20);
-    Number y(static_cast<double>(i) / 20), z(0.5);
-    Number rx, ry(M_PI), rz;
-    TrajectoryPoint tp(x, y, z, rx, ry, rz);
-    ee_trajectory_.push_back(tp);
-  }
-}
-
 void Planner::createGraphData(RedundantRobot& robot)
 {
   for (auto tp : ee_trajectory_)
