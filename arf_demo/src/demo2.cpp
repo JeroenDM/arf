@@ -8,6 +8,7 @@
 #include <trajectory_msgs/JointTrajectoryPoint.h>
 #include <geometry_msgs/Pose.h>
 #include <moveit/move_group_interface/move_group_interface.h>
+#include <eigen_conversions/eigen_msg.h>
 
 //#include "arf_moveit_wrapper/moveit_wrapper.h"
 #include "arf_moveit_wrapper/redundant_robot.h"
@@ -82,27 +83,53 @@ int main(int argc, char **argv)
       tp.plot(rviz.visual_tools_);
     }
 
-    planner.setTrajectory(traj);
-    planner.createGraphData(robot);
-    planner.calculateShortestPath(robot);
-
+    bool planner_success = planner.run(robot, traj);
+    ROS_INFO_NAMED("tutorial", "Planner %s", planner_success ? "SUCCESS" : "FAILED");
     auto shortest_path = planner.getShortestPath();
     //rviz.animatePath(robot, shortest_path);
 
     moveit::planning_interface::MoveGroupInterface move_group("manipulator");
+    moveit::planning_interface::MoveGroupInterface::Plan plan1, plan2, plan3;
 
-    move_group.setJointValueTarget(shortest_path[0]);
+    // find approach point
+    geometry_msgs::Pose  approach_pose;
+    tf::poseEigenToMsg(robot.fk(shortest_path[0]), approach_pose);
+    approach_pose.position.z -= 0.1;
 
-    moveit::planning_interface::MoveGroupInterface::Plan plan1;
-
+    move_group.setJointValueTarget(approach_pose);
     bool success = (move_group.plan(plan1) == moveit::planning_interface::MoveItErrorCode::SUCCESS);
-    ROS_INFO_NAMED("tutorial", "Visualizing plan 1 (joint space goal) %s", success ? "" : "FAILED");
+    ROS_INFO_NAMED("tutorial", "Go to approach pose %s", success ? "" : "FAILED");
 
-    //trajectory_msgs::JointTrajectory weld_trajectory;
+    // std::vector<geometry_msgs::Pose> waypoints;
+    // for (int i = 1; i < 11; ++i)
+    // {
+    //   geometry_msgs::Pose temp = approach_pose;
+    //   temp.position.z += 0.01 * i;
+    //   waypoints.push_back(temp); // mmm, should create new onces that keep existing...
+    // }
+
+    // moveit_msgs::RobotTrajectory trajectory;
+    // const double jump_threshold = 0.0;
+    // const double eef_step = 0.01;
+    // double fraction = move_group.computeCartesianPath(waypoints, eef_step, jump_threshold, trajectory);
+
+    // ROS_INFO_STREAM("Fraction: " << fraction);
+    // ROS_INFO_STREAM("Plan: " << trajectory);
+
     int N = plan1.trajectory_.joint_trajectory.points.size();
     ros::Duration start_time = plan1.trajectory_.joint_trajectory.points[N-1].time_from_start;
+    // for (auto& trajpt : trajectory.joint_trajectory.points)
+    // {
+    //   trajpt.time_from_start += start_time;
+    //   plan1.trajectory_.joint_trajectory.points.push_back(trajpt);
+    // }
+  
+
+    //trajectory_msgs::JointTrajectory weld_trajectory;
+    N = plan1.trajectory_.joint_trajectory.points.size();
+    start_time = plan1.trajectory_.joint_trajectory.points[N-1].time_from_start;
     ROS_INFO_STREAM("Start time welding: " <<  start_time);
-    for (auto q_sol : shortest_path)
+    for (auto& q_sol : shortest_path)
     {
       trajectory_msgs::JointTrajectoryPoint new_point;
       new_point.positions = q_sol;
@@ -113,49 +140,12 @@ int main(int argc, char **argv)
 
     move_group.execute(plan1);
 
-    ROS_INFO_STREAM("Plan: " << plan1.trajectory_);
+    // ROS_INFO_STREAM("Plan: " << plan1.trajectory_);
 
-    move_group.setNamedTarget("allZeros");
+    move_group.setNamedTarget("home");
     success = (move_group.plan(plan1) == moveit::planning_interface::MoveItErrorCode::SUCCESS);
     ROS_INFO_NAMED("tutorial", "Visualizing plan 22(joint space goal) %s", success ? "" : "FAILED");
     move_group.execute(plan1);
-
-
-    
-
-    // // calculate forward kinematics to get reachable pose
-    // std::vector<double> q1 = {0.0, 0.0, 0, 0, 0, 0, 0, 0};
-    // auto fk_pose = robot.fk(q1, "tool_tip");
-
-    // // move the fk_pose closer to robot
-    // Eigen::Vector3d p1(0.3, 0.5, -0.3);
-    // fk_pose.translate(p1);
-
-    // // visualize fk_pose
-    // rviz.visual_tools_->publishAxisLabeled(fk_pose, "fk_pose");
-    // rviz.visual_tools_->trigger();
-
-    // ros::Duration(1.0).sleep();
-
-    // // set values for fixed joints = y- and z-rail
-    // std::vector<double> q_fixed = {0, 0};
-    
-    // //auto ik_sol = robot.redundantIk(fk_pose, q_fixed);
-    // auto ik_sol = robot.ikGridSamples(fk_pose);
-
-    // // show ik solutions
-    // if (ik_sol.size() > 0)
-    // {
-    //     for (auto q_sol : ik_sol)
-    //     {
-    //         robot.plot(rviz.visual_tools_, q_sol);
-    //         ros::Duration(0.4).sleep();
-    //     }
-    // }
-    // else
-    // {
-    //     ROS_INFO("No ik solutions found");
-    // }
 
     ros::Duration(1.0).sleep();
 

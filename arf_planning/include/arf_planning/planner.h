@@ -16,10 +16,12 @@ class Planner {
 public:
   Planner();
   void setTrajectory(std::vector<TrajectoryPoint>& traj) { ee_trajectory_ = traj; }
-  void createGraphData(RedundantRobot& robot);
+  bool createGraphData(RedundantRobot& robot);
   void calculateShortestPath(RedundantRobot& robot);
   std::vector<std::vector<double>> getShortestPath() { return shortest_path_; }
   void showShortestPath(RedundantRobot& robot, moveit_visual_tools::MoveItVisualToolsPtr vs);
+
+  bool run(RedundantRobot& robot, std::vector<TrajectoryPoint>& task);
 };
 
 #endif

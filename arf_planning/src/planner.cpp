@@ -9,7 +9,7 @@ Planner::Planner()
   ROS_INFO("Created planner");
 }
 
-void Planner::createGraphData(RedundantRobot& robot)
+bool Planner::createGraphData(RedundantRobot& robot)
 {
   for (auto tp : ee_trajectory_)
   {
@@ -24,11 +24,13 @@ void Planner::createGraphData(RedundantRobot& robot)
     }
     if (new_data.size() == 0)
     {
-        ROS_ERROR("No collision free ik sol found for a tp");
-        throw std::runtime_error("No ik found");
+        //ROS_ERROR("No collision free ik sol found for a tp");
+        //throw std::runtime_error("No ik found");
+        return false;
     }
     ROS_INFO_STREAM("Found collision free solutions: " << new_data.size());
     graph_data_.push_back(new_data);
+    return true;
   }
 }
 
@@ -52,4 +54,15 @@ void Planner::showShortestPath(RedundantRobot& robot, moveit_visual_tools::MoveI
     robot.plot(vs, q);
     ros::Duration(0.5).sleep();
   }
+}
+
+bool Planner::run(RedundantRobot& robot, std::vector<TrajectoryPoint>& task)
+{
+  setTrajectory(task);
+  if (createGraphData(robot))
+  {
+    calculateShortestPath(robot);
+    return true;
+  }
+  return false;
 }
