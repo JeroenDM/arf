@@ -42,11 +42,12 @@ class TrajectoryPoint
   std::array<Number*, 6> raw_numbers_; /* x, y, z, rx, ry, rz */
   Eigen::Affine3d nominal_pose_;
   Sampler sampler_;
+  double time_from_previous_point_;
 
   Eigen::Affine3d valuesToPose(std::vector<double>& values);
 
   public:
-  TrajectoryPoint(Number& x, Number& y, Number& z, Number& rx, Number& ry, Number& rz);
+  TrajectoryPoint(Number& x, Number& y, Number& z, Number& rx, Number& ry, Number& rz, double timing = 0.1);
   ~TrajectoryPoint() = default;
 
   std::vector<Eigen::Affine3d> getGridSamples();

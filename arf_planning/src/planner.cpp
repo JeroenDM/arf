@@ -1,16 +1,8 @@
 #include "arf_planning/planner.h"
 
-#include <ros/ros.h>
-#include <vector>
-//#include <Eigen/Geometry>
-
-Planner::Planner()
-{
-  ROS_INFO("Created planner");
-}
-
 bool Planner::createGraphData(RedundantRobot& robot)
 {
+  ROS_INFO_STREAM("Received trajectory of with points: " << ee_trajectory_.size());
   for (auto tp : ee_trajectory_)
   {
     std::vector<std::vector<double>> new_data;
@@ -24,14 +16,14 @@ bool Planner::createGraphData(RedundantRobot& robot)
     }
     if (new_data.size() == 0)
     {
-        //ROS_ERROR("No collision free ik sol found for a tp");
+        ROS_ERROR("No collision free ik sol found for a tp");
         //throw std::runtime_error("No ik found");
         return false;
     }
     ROS_INFO_STREAM("Found collision free solutions: " << new_data.size());
     graph_data_.push_back(new_data);
-    return true;
   }
+  return true;
 }
 
 void Planner::calculateShortestPath(RedundantRobot& robot)

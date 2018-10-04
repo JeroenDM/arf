@@ -14,7 +14,7 @@ void TolerancedNumber::checkInput()
   }
 }
 
-TrajectoryPoint::TrajectoryPoint(Number& x, Number& y, Number& z, Number& rx, Number& ry, Number& rz)
+TrajectoryPoint::TrajectoryPoint(Number& x, Number& y, Number& z, Number& rx, Number& ry, Number& rz, double timing)
 {
   using namespace Eigen;
   raw_numbers_[0] = &x;
@@ -30,6 +30,7 @@ TrajectoryPoint::TrajectoryPoint(Number& x, Number& y, Number& z, Number& rx, Nu
   {
     sampler_.addDimension(n->num_samples_, n->lower_bound_, n->upper_bound_);
   }
+  time_from_previous_point_ = timing;
 }
 
 Eigen::Affine3d TrajectoryPoint::valuesToPose(std::vector<double>& values)
