@@ -68,8 +68,8 @@ std::vector<TrajectoryPoint> createTrajectory()
 struct WeldingTaskSolution
 {
     bool success = false;
-    //geometry_msgs::Pose start_pose;
-    //geometry_msgs::Pose end_pose;
+    geometry_msgs::Pose start_pose;
+    geometry_msgs::Pose end_pose;
     JointPose start_joint_pose;
     JointPose end_joint_pose;
     std::vector<JointPose> joint_trajectory;
@@ -86,9 +86,58 @@ MoveitPlan jointTrajectoryToMoveitPlan(std::vector<JointPose> joint_trajectory)
         new_point.positions = q;
         new_point.time_from_start = start_time;
         plan.trajectory_.joint_trajectory.points.push_back(new_point);
-        start_time += ros::Duration(0.1);
+        start_time += ros::Duration(0.2);
     }
     return plan;
+}
+
+void addApproachPath(std::vector<JointPose>& joint_trajectory, RedundantRobot& robot)
+{
+    ROS_INFO_STREAM("Calculating approach path.");
+    Eigen::Affine3d pose = robot.fk(joint_trajectory[0]);
+    Eigen::Vector3d position = pose.translation();
+    Eigen::Vector3d angles   = pose.rotation().eulerAngles(2, 1, 0);
+    ROS_INFO_STREAM("Angles: " << angles);
+    std::vector<TrajectoryPoint> ee_trajectory;
+    for (int i = 0; i < 5; ++i)
+    {
+        Number x(position[0]), y(position[1]), z(position[2]);
+        //Number rx(angles[0]), ry(angles[1]), rz(angles[2]);
+        Number rx, ry(M_PI), rz;
+        TrajectoryPoint tp(x, y, z, rx, ry, rz);
+        ee_trajectory.push_back(tp);
+        position[2] += 0.025;
+    }
+    Planner planner;
+    if (!planner.run(robot, ee_trajectory))
+        ROS_ERROR_STREAM("Failed to find approach path.");
+    auto jp = planner.getShortestPath();
+    std::reverse(jp.begin(), jp.end());
+    joint_trajectory.insert(joint_trajectory.begin(), jp.begin(), jp.end());
+
+}
+
+void addRetractPath(std::vector<JointPose>& joint_trajectory, RedundantRobot& robot)
+{
+    Eigen::Affine3d pose = robot.fk(joint_trajectory.back());
+    Eigen::Vector3d position = pose.translation();
+    Eigen::Vector3d angles   = pose.rotation().eulerAngles(2, 1, 0);
+    ROS_INFO_STREAM("Angles: " << angles);
+    std::vector<TrajectoryPoint> ee_trajectory;
+    for (int i = 0; i < 5; ++i)
+    {
+        Number x(position[0]), y(position[1]), z(position[2]);
+        //Number rx(angles[0]), ry(angles[1]), rz(angles[2]);
+        Number rx, ry(M_PI), rz;
+        TrajectoryPoint tp(x, y, z, rx, ry, rz);
+        ee_trajectory.push_back(tp);
+        position[2] += 0.025;
+    }
+    Planner planner;
+    if (!planner.run(robot, ee_trajectory))
+        ROS_ERROR_STREAM("Failed to find retract path.");
+    auto jp = planner.getShortestPath();
+    joint_trajectory.insert(joint_trajectory.end(), jp.begin(), jp.end());
 }
 
 WeldingTaskSolution planWeld(RedundantRobot robot, std::vector<TrajectoryPoint> ee_trajectory)
@@ -100,12 +149,16 @@ WeldingTaskSolution planWeld(RedundantRobot robot, std::vector<TrajectoryPoint> 
     solution.success = true;
 
     auto shortest_path = planner.getShortestPath();
+
+    addApproachPath(shortest_path, robot);
+    addRetractPath(shortest_path, robot);
     solution.joint_trajectory = shortest_path;
     solution.motion_plan = jointTrajectoryToMoveitPlan(shortest_path);
-    //tf::poseEigenToMsg(robot.fk(shortest_path[0]), solution.start_pose);
-    //tf::poseEigenToMsg(robot.fk(shortest_path[shortest_path.size() - 1]), solution.end_pose);
-    solution.start_joint_pose = shortest_path[0];
-    solution.end_joint_pose = shortest_path[shortest_path.size() - 1];
+
+    solution.start_joint_pose = shortest_path.front();
+    solution.end_joint_pose = shortest_path.back();
+    tf::poseEigenToMsg(robot.fk(solution.start_joint_pose), solution.start_pose);
+    tf::poseEigenToMsg(robot.fk(solution.end_joint_pose), solution.end_pose);
 
     ROS_INFO_STREAM("Plan size: " << solution.motion_plan.trajectory_.joint_trajectory.points.size());
     return solution;
@@ -113,8 +166,8 @@ WeldingTaskSolution planWeld(RedundantRobot robot, std::vector<TrajectoryPoint> 
 
 void addPlans(MoveitPlan& plan_a, MoveitPlan& plan_b)
 {
-    std::size_t Na = plan_a.trajectory_.joint_trajectory.points.size();
-    ros::Duration last_time_a = plan_a.trajectory_.joint_trajectory.points[Na-1].time_from_start;
+    //std::size_t Na = plan_a.trajectory_.joint_trajectory.points.size();
+    ros::Duration last_time_a = plan_a.trajectory_.joint_trajectory.points.back().time_from_start;
     for (auto jtp : plan_b.trajectory_.joint_trajectory.points)
     {
         jtp.time_from_start += last_time_a;
@@ -161,22 +214,22 @@ int main(int argc, char** argv)
     bool success1 = (move_group.plan(plan1) == moveit::planning_interface::MoveItErrorCode::SUCCESS);
     ROS_INFO_NAMED("tutorial", "Go to approach pose %s", success1 ? "SUCCESS" : "FAILED");
 
-    // trajectory_msgs::JointTrajectory weld_trajectory;
-    // int N = plan1.trajectory_.joint_trajectory.points.size();
-    // ros::Duration start_time = plan1.trajectory_.joint_trajectory.points[N - 1].time_from_start;
-    // ROS_INFO_STREAM("Start time welding: " << start_time);
-    // for (auto& q_sol : solution.joint_trajectory)
-    // {
-    //     trajectory_msgs::JointTrajectoryPoint new_point;
-    //     new_point.positions = q_sol;
-    //     start_time += ros::Duration(0.1);
-    //     new_point.time_from_start = start_time;
-    //     plan1.trajectory_.joint_trajectory.points.push_back(new_point);
-    // }
+
+    rviz.clear();
+    std::vector<Eigen::Affine3d> final_ee_path;
+    for (auto& q_sol : solution.joint_trajectory)
+    {
+        final_ee_path.push_back(robot.fk(q_sol));
+    }
+
+    for (auto& pose : final_ee_path)
+    {
+        rviz.plotPose(pose);
+    }
 
     addPlans(plan1, solution.motion_plan);
     //ROS_INFO_STREAM("Sol plan: " << solution.motion_plan.trajectory_);
-    ROS_INFO_STREAM("plan plan: " << plan1.trajectory_);
+    //ROS_INFO_STREAM("plan plan: " << plan1.trajectory_);
 
     move_group.execute(plan1);
     ros::Duration(1.0).sleep();
