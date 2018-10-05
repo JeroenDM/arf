@@ -104,9 +104,11 @@ const IKSolution RobotMoveitWrapper::ik(const Eigen::Affine3d pose)
     // or a different base frame
     // Eigen::Affine3d tool_pose = diff_base.inverse() * pose *
     // tip_frame.inverse();
+    Eigen::Isometry3d pose_temp;
+    pose_temp = pose.matrix();
 
     std::array<double, 6 * 8> sols;
-    opw_kinematics::inverse(robot_parameters_, pose, sols.data());
+    opw_kinematics::inverse(robot_parameters_, pose_temp, sols.data());
 
     // Check the output
     std::vector<double> tmp(6);  // temporary storage for API reasons
