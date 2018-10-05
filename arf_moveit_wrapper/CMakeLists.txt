@@ -68,6 +68,8 @@ set_target_properties(${PROJECT_NAME}_main PROPERTIES OUTPUT_NAME main PREFIX ""
 target_link_libraries(${PROJECT_NAME}
   ${catkin_LIBRARIES}
 )
+add_dependencies(${PROJECT_NAME} ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+
 target_link_libraries(${PROJECT_NAME}_main
   ${catkin_LIBRARIES}
   ${PROJECT_NAME}
