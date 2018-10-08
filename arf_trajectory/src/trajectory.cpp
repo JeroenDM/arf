@@ -28,7 +28,7 @@ TrajectoryPoint::TrajectoryPoint(Number& x, Number& y, Number& z, Number& rx, Nu
   
   for (auto n : raw_numbers_)
   {
-    sampler_.addDimension(n->num_samples_, n->lower_bound_, n->upper_bound_);
+    sampler_.addDimension(n->lower_bound_, n->upper_bound_, n->num_samples_);
   }
   time_from_previous_point_ = timing;
 }

@@ -1,15 +1,6 @@
 #include "arf_sampling/sampling.h"
 
-void Sampler::addDimension(int num_samples, double lower_bound, double upper_bound)
-{
-  dimensions_ += 1;
-  num_samples_.push_back(num_samples);
-  lower_bounds_.push_back(lower_bound);
-  upper_bounds_.push_back(upper_bound);
-  sampled_ranges_.push_back(range(lower_bound, upper_bound, num_samples));
-}
-
-std::vector<double> Sampler::range(double lower_bound, double upper_bound, int num_samples)
+std::vector<double> range(double lower_bound, double upper_bound, int num_samples)
 {
   std::vector<double> range;
   if (num_samples == 1)
@@ -26,6 +17,15 @@ std::vector<double> Sampler::range(double lower_bound, double upper_bound, int n
     }
   }
   return range;
+}
+
+void Sampler::addDimension(double lower_bound, double upper_bound, int num_samples)
+{
+  dimensions_ += 1;
+  num_samples_.push_back(num_samples);
+  lower_bounds_.push_back(lower_bound);
+  upper_bounds_.push_back(upper_bound);
+  sampled_ranges_.push_back(range(lower_bound, upper_bound, num_samples));
 }
 
 std::vector<std::vector<double>> Sampler::getGridSamples()
