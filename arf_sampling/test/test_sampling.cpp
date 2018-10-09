@@ -33,6 +33,12 @@ TEST(Sampler, range)
     EXPECT_DOUBLE_EQ(r[3], 2);
 }
 
+TEST(Sampler, wrongInput)
+{
+    Sampler s;
+    EXPECT_ANY_THROW( s.addDimension(-1, 2, 1) );
+}
+
 int main(int argc, char** argv)
 {
     testing::InitGoogleTest(&argc, argv);

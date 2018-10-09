@@ -2,6 +2,7 @@
 #define _SAMPLING_H_
 
 #include <iostream>
+#include <stdexcept>
 #include <vector>
 
 std::vector<double> range(double lower_bound, double upper_bound, int num_samples);

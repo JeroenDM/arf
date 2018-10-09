@@ -4,8 +4,8 @@ std::vector<double> range(double lower_bound, double upper_bound, int num_sample
 {
     std::vector<double> range;
     if (num_samples == 1)
-    {
-        range = { lower_bound };
+    {      
+      range = { lower_bound };
     }
     else
     {
@@ -45,6 +45,8 @@ void Sampler::recursiveGridSampling(int index, std::vector<double> prev_values, 
 
 void Sampler::addDimension(double lower_bound, double upper_bound, int num_samples)
 {
+    if (num_samples == 1 and lower_bound != upper_bound)
+        throw std::invalid_argument("Lower bound should equal upper bound if number of samples is 1.");
     dimensions_ += 1;
     lower_bounds_.push_back(lower_bound);
     upper_bounds_.push_back(upper_bound);
