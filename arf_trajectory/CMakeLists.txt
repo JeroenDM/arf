@@ -71,13 +71,13 @@ target_link_libraries(${PROJECT_NAME} ${catkin_LIBRARIES})
 #   ${catkin_LIBRARIES}
 # )
 
-add_executable(${PROJECT_NAME}_test_tn test/test_toleranced_number.cpp)
+add_executable(${PROJECT_NAME}_test test/test_toleranced_number.cpp)
 
-set_target_properties(${PROJECT_NAME}_test_tn PROPERTIES OUTPUT_NAME test_tn PREFIX "")
+set_target_properties(${PROJECT_NAME}_test PROPERTIES OUTPUT_NAME test PREFIX "")
 
-add_dependencies(${PROJECT_NAME}_test_tn ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+add_dependencies(${PROJECT_NAME}_test ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
-target_link_libraries(${PROJECT_NAME}_test_tn
+target_link_libraries(${PROJECT_NAME}_test
  gtest
  ${PROJECT_NAME}
  ${catkin_LIBRARIES}
