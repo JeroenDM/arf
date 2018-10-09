@@ -29,8 +29,8 @@ RedundantRobot::RedundantRobot() : RobotMoveitWrapper()
   auto bnd1 = joint_model_group_->getJointModel("y_rail_to_z_rail")->getVariableBounds();
   auto bnd2 = joint_model_group_->getJointModel("z_rail_to_robot_mount")->getVariableBounds();
 
-  sampler_.addDimension(3, bnd1[0].min_position_, bnd1[0].max_position_);
-  sampler_.addDimension(3, bnd2[0].min_position_, bnd2[0].max_position_);
+  sampler_.addDimension(bnd1[0].min_position_, bnd1[0].max_position_, 3);
+  sampler_.addDimension(bnd2[0].min_position_, bnd2[0].max_position_, 3);
 }
 
 IKSolution RedundantRobot::redundantIk(const Eigen::Affine3d& pose, std::vector<double>& q_fixed)
