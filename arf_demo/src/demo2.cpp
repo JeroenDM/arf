@@ -50,15 +50,21 @@ class Rviz
     }
 };
 
-std::vector<TrajectoryPoint> createTrajectory()
+std::vector<TrajectoryPoint> createTrajectory(double x_ref = 0.0, double y_ref = 0.0, double z_ref = 0.0)
 {
     std::vector<TrajectoryPoint> ee_trajectory;
     for (int i = 0; i < 10; ++i)
     {
-        TolerancedNumber x(1.0, 0.95, 1.05, 5);
-        // Number y, z(0.5 + static_cast<double>(i) / 20);
-        Number y(static_cast<double>(i) / 20), z(0.5);
-        Number rx, ry(M_PI), rz;
+        // TolerancedNumber x(1.0 + x_ref, 0.95 + x_ref, 1.05 + x_ref, 5);
+        // // Number y, z(0.5 + static_cast<double>(i) / 20);
+        // Number y(static_cast<double>(i) / 20 + y_ref), z(0.5 + z_ref);
+        // Number rx, ry(M_PI), rz;
+        double s = static_cast<double>(i) / 9;
+        double xi = -0.15 * (1-s) + 0.15 * s;
+        Number x(xi + x_ref);
+        Number y(1.45 + y_ref), z(0.2 + z_ref);
+        Number rx, ry(M_PI);
+        TolerancedNumber rz(0.0, -1.5, 1.5, 10);
         TrajectoryPoint tp(x, y, z, rx, ry, rz);
         ee_trajectory.push_back(tp);
     }
@@ -184,11 +190,23 @@ int main(int argc, char** argv)
 
     ROS_INFO("Demo 2");
 
+    moveit::planning_interface::MoveGroupInterface table("table");
+    ROS_INFO("Reference frame: %s", table.getPlanningFrame().c_str());
+
+    //moveit::core::RobotModelConstPtr table_model = table.getRobotModel();
+    //const moveit::core::JointModelGroup* jmg = table_model->getJointModelGroup("table");
+    robot_state::RobotState table_state(*table.getCurrentState());
+    const Eigen::Affine3d wobj_frame = table_state.getGlobalLinkTransform("wobj");
+    ROS_INFO_STREAM("===================================");
+    ROS_INFO_STREAM("Work object frame: " << wobj_frame.translation().transpose());
+    const Eigen::Vector3d offset = wobj_frame.translation();
+
+
     RedundantRobot robot;
     Rviz rviz;
     rviz.clear();
 
-    auto traj = createTrajectory();
+    auto traj = createTrajectory(offset[0], offset[1], offset[2]);
     for (auto tp : traj)
     {
         tp.plot(rviz.visual_tools_);
@@ -236,6 +254,16 @@ int main(int argc, char** argv)
 
     //move_group.execute(solution.motion_plan);
     //ros::Duration(1.0).sleep();
+
+    // std::vector<double> group_variable_values;
+    // move_group.getCurrentState()->copyJointGroupPositions(move_group.getCurrentState()->getRobotModel()->getJointModelGroup(move_group.getName()), group_variable_values);
+
+    // group_variable_values[3] = 0.0;
+    // group_variable_values[4] = 0.0;
+    // group_variable_values[5] = 0.0;
+    // move_group.setJointValueTarget(group_variable_values);
+    // move_group.move();
+    // ros::Duration(1.0).sleep();
 
     move_group.setNamedTarget("home");
     move_group.move();
