@@ -63,7 +63,7 @@ std::vector<TrajectoryPoint> createTrajectory(double x_ref = 0.0, double y_ref =
         double xi = -0.15 * (1-s) + 0.15 * s;
         Number x(xi + x_ref);
         Number y(1.45 + y_ref), z(0.2 + z_ref);
-        Number rx, ry(M_PI);
+        Number rx(M_PI_4), ry(M_PI);
         TolerancedNumber rz(0.0, -1.5, 1.5, 10);
         TrajectoryPoint tp(x, y, z, rx, ry, rz);
         ee_trajectory.push_back(tp);
@@ -102,14 +102,14 @@ void addApproachPath(std::vector<JointPose>& joint_trajectory, RedundantRobot& r
     ROS_INFO_STREAM("Calculating approach path.");
     Eigen::Affine3d pose = robot.fk(joint_trajectory[0]);
     Eigen::Vector3d position = pose.translation();
-    Eigen::Vector3d angles   = pose.rotation().eulerAngles(2, 1, 0);
+    Eigen::Vector3d angles   = pose.rotation().eulerAngles(0, 1, 2);
     ROS_INFO_STREAM("Angles: " << angles);
     std::vector<TrajectoryPoint> ee_trajectory;
     for (int i = 0; i < 5; ++i)
     {
         Number x(position[0]), y(position[1]), z(position[2]);
-        //Number rx(angles[0]), ry(angles[1]), rz(angles[2]);
-        Number rx, ry(M_PI), rz;
+        Number rx(angles[0]), ry(angles[1]), rz(angles[2]);
+        //Number rx, ry(M_PI), rz;
         TrajectoryPoint tp(x, y, z, rx, ry, rz);
         ee_trajectory.push_back(tp);
         position[2] += 0.025;
@@ -127,14 +127,14 @@ void addRetractPath(std::vector<JointPose>& joint_trajectory, RedundantRobot& ro
 {
     Eigen::Affine3d pose = robot.fk(joint_trajectory.back());
     Eigen::Vector3d position = pose.translation();
-    Eigen::Vector3d angles   = pose.rotation().eulerAngles(2, 1, 0);
+    Eigen::Vector3d angles   = pose.rotation().eulerAngles(0, 1, 2);
     ROS_INFO_STREAM("Angles: " << angles);
     std::vector<TrajectoryPoint> ee_trajectory;
     for (int i = 0; i < 5; ++i)
     {
         Number x(position[0]), y(position[1]), z(position[2]);
-        //Number rx(angles[0]), ry(angles[1]), rz(angles[2]);
-        Number rx, ry(M_PI), rz;
+        Number rx(angles[0]), ry(angles[1]), rz(angles[2]);
+        //Number rx, ry(M_PI), rz;
         TrajectoryPoint tp(x, y, z, rx, ry, rz);
         ee_trajectory.push_back(tp);
         position[2] += 0.025;
@@ -191,10 +191,6 @@ int main(int argc, char** argv)
     ROS_INFO("Demo 2");
 
     moveit::planning_interface::MoveGroupInterface table("table");
-    ROS_INFO("Reference frame: %s", table.getPlanningFrame().c_str());
-
-    //moveit::core::RobotModelConstPtr table_model = table.getRobotModel();
-    //const moveit::core::JointModelGroup* jmg = table_model->getJointModelGroup("table");
     robot_state::RobotState table_state(*table.getCurrentState());
     const Eigen::Affine3d wobj_frame = table_state.getGlobalLinkTransform("wobj");
     ROS_INFO_STREAM("===================================");

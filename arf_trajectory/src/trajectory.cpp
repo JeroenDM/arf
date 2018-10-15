@@ -39,7 +39,7 @@ Transform TrajectoryPoint::valuesToPose(std::vector<double>& values)
     // clang-format off
     Transform t;
       t = Translation(values[0], values[1], values[2]) *
-          AngleAxis(values[3], Vector::UnitZ()) *
+          AngleAxis(values[3], Vector::UnitX()) *
           AngleAxis(values[4], Vector::UnitY()) *
           AngleAxis(values[5], Vector::UnitZ());
       return t;
