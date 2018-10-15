@@ -54,8 +54,11 @@ class TrajectoryPoint
 
   public:
     TrajectoryPoint(Number& x, Number& y, Number& z, Number& rx, Number& ry, Number& rz, double timing = 0.1);
+    TrajectoryPoint(std::vector<double> joint_pose) : is_joint_pose_specified_(true), joint_pose_(joint_pose) {}
     ~TrajectoryPoint() = default;
 
+    bool is_joint_pose_specified_ = false;
+    std::vector<double> joint_pose_;
     std::vector<Transform> getGridSamples();
     std::vector<Transform> getPoses();
     Transform getNominalPose()

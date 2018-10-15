@@ -122,6 +122,8 @@ void addApproachPath(std::vector<JointPose>& joint_trajectory, RedundantRobot& r
     Eigen::Affine3d pose = robot.fk(joint_trajectory[0]);
     Eigen::Vector3d direction = - pose.rotation() * Eigen::Vector3d::UnitZ();
     auto ee_trajectory = createLine(pose, direction, 0.1);
+    TrajectoryPoint jtp(joint_trajectory.front());
+    ee_trajectory.push_back(jtp);
 
     Planner planner;
     if (!planner.run(robot, ee_trajectory))
@@ -134,9 +136,12 @@ void addApproachPath(std::vector<JointPose>& joint_trajectory, RedundantRobot& r
 
 void addRetractPath(std::vector<JointPose>& joint_trajectory, RedundantRobot& robot)
 {
+    ROS_INFO_STREAM("Calculating retract path.");
     Eigen::Affine3d pose = robot.fk(joint_trajectory.back());
     Eigen::Vector3d direction = - pose.rotation() * Eigen::Vector3d::UnitZ();
     std::vector<TrajectoryPoint> ee_trajectory = createLine(pose, direction, 0.1);
+    TrajectoryPoint jtp(joint_trajectory.back());
+    ee_trajectory.insert(ee_trajectory.begin(), jtp);
 
     Planner planner;
     if (!planner.run(robot, ee_trajectory))

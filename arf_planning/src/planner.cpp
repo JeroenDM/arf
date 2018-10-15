@@ -6,21 +6,28 @@ bool Planner::createGraphData(RedundantRobot& robot)
   for (auto tp : ee_trajectory_)
   {
     std::vector<std::vector<double>> new_data;
-    for (auto pose : tp.getGridSamples())
+    if (tp.is_joint_pose_specified_)
     {
-      for (auto q_sol : robot.ikGridSamples(pose))
+      ROS_INFO_STREAM("Fixed joint pose tp.");
+      new_data.push_back(tp.joint_pose_);
+    }
+    else {
+      for (auto pose : tp.getGridSamples())
       {
-        if (!robot.isInCollision(q_sol))
-            new_data.push_back(q_sol);
+        for (auto q_sol : robot.ikGridSamples(pose))
+        {
+          if (!robot.isInCollision(q_sol))
+              new_data.push_back(q_sol);
+        }
       }
+      if (new_data.size() == 0)
+      {
+          ROS_ERROR("No collision free ik sol found for a tp");
+          //throw std::runtime_error("No ik found");
+          return false;
+      }
+      ROS_INFO_STREAM("Found collision free solutions: " << new_data.size());
     }
-    if (new_data.size() == 0)
-    {
-        ROS_ERROR("No collision free ik sol found for a tp");
-        //throw std::runtime_error("No ik found");
-        return false;
-    }
-    ROS_INFO_STREAM("Found collision free solutions: " << new_data.size());
     graph_data_.push_back(new_data);
   }
   return true;
