@@ -97,23 +97,32 @@ MoveitPlan jointTrajectoryToMoveitPlan(std::vector<JointPose> joint_trajectory)
     return plan;
 }
 
-void addApproachPath(std::vector<JointPose>& joint_trajectory, RedundantRobot& robot)
+std::vector<TrajectoryPoint> createLine(const Eigen::Affine3d start_pose, const Eigen::Vector3d direction, const double length)
 {
-    ROS_INFO_STREAM("Calculating approach path.");
-    Eigen::Affine3d pose = robot.fk(joint_trajectory[0]);
-    Eigen::Vector3d position = pose.translation();
-    Eigen::Vector3d angles   = pose.rotation().eulerAngles(0, 1, 2);
-    ROS_INFO_STREAM("Angles: " << angles);
-    std::vector<TrajectoryPoint> ee_trajectory;
+    Eigen::Vector3d position = start_pose.translation();
+    Eigen::Vector3d angles   = start_pose.rotation().eulerAngles(0, 1, 2);
+
+    std::vector<TrajectoryPoint> line;
+    double s;
     for (int i = 0; i < 5; ++i)
     {
         Number x(position[0]), y(position[1]), z(position[2]);
         Number rx(angles[0]), ry(angles[1]), rz(angles[2]);
-        //Number rx, ry(M_PI), rz;
         TrajectoryPoint tp(x, y, z, rx, ry, rz);
-        ee_trajectory.push_back(tp);
-        position[2] += 0.025;
+        line.push_back(tp);
+        s = static_cast<double>(i) / 4 * 0.1;
+        position = position + s * direction;
     }
+    return line;
+}
+
+void addApproachPath(std::vector<JointPose>& joint_trajectory, RedundantRobot& robot)
+{
+    ROS_INFO_STREAM("Calculating approach path.");
+    Eigen::Affine3d pose = robot.fk(joint_trajectory[0]);
+    Eigen::Vector3d direction = - pose.rotation() * Eigen::Vector3d::UnitZ();
+    auto ee_trajectory = createLine(pose, direction, 0.1);
+
     Planner planner;
     if (!planner.run(robot, ee_trajectory))
         ROS_ERROR_STREAM("Failed to find approach path.");
@@ -126,19 +135,9 @@ void addApproachPath(std::vector<JointPose>& joint_trajectory, RedundantRobot& r
 void addRetractPath(std::vector<JointPose>& joint_trajectory, RedundantRobot& robot)
 {
     Eigen::Affine3d pose = robot.fk(joint_trajectory.back());
-    Eigen::Vector3d position = pose.translation();
-    Eigen::Vector3d angles   = pose.rotation().eulerAngles(0, 1, 2);
-    ROS_INFO_STREAM("Angles: " << angles);
-    std::vector<TrajectoryPoint> ee_trajectory;
-    for (int i = 0; i < 5; ++i)
-    {
-        Number x(position[0]), y(position[1]), z(position[2]);
-        Number rx(angles[0]), ry(angles[1]), rz(angles[2]);
-        //Number rx, ry(M_PI), rz;
-        TrajectoryPoint tp(x, y, z, rx, ry, rz);
-        ee_trajectory.push_back(tp);
-        position[2] += 0.025;
-    }
+    Eigen::Vector3d direction = - pose.rotation() * Eigen::Vector3d::UnitZ();
+    std::vector<TrajectoryPoint> ee_trajectory = createLine(pose, direction, 0.1);
+
     Planner planner;
     if (!planner.run(robot, ee_trajectory))
         ROS_ERROR_STREAM("Failed to find retract path.");
