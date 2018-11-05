@@ -4,6 +4,8 @@
 #include "arf_graph/graph.h"
 #include "arf_graph/util.h"
 
+const bool VERBOSE = false;
+
 TEST(Node, createNode)
 {
     JointPose jv;
@@ -35,14 +37,17 @@ TEST_F(TestGraph, addPathPointData)
     g.addPathPointData(jp2);
     g.addPathPointData(jp3);
 
-    std::cout << g << std::endl;
+    EXPECT_TRUE(true);
+    if (VERBOSE) std::cout << g << std::endl;
 }
 
 TEST_F(TestGraph, nonDefaultConstructor)
 {
     std::vector<std::vector<JointPose>> data = { jp1, jp2, jp3 };
     Graph g(data);
-    std::cout << g << std::endl;
+
+    EXPECT_TRUE(true);
+    if (VERBOSE) std::cout << g << std::endl;
 }
 
 TEST_F(TestGraph, getNeighbors)
@@ -50,21 +55,31 @@ TEST_F(TestGraph, getNeighbors)
     Node n{};
     n.path_index = 1;
     std::vector<Node*> nb = g1.getNeighbors(&n);
-    for (auto node : nb)
+
+    EXPECT_TRUE(true);
+    if (VERBOSE)
     {
-        std::cout << (*node) << std::endl;
+        for (auto node : nb)
+        {
+            std::cout << (*node) << std::endl;
+        }
     }
 }
 
 TEST_F(TestGraph, dijkstra)
 {
     g1.runMultiSourceDijkstra();
-    std::cout << g1 << std::endl;
     std::vector<Node*> sp = g1.getShortestPath();
-    std::cout << "Shortest path \n";
-    for (auto node : sp)
+
+    EXPECT_TRUE(true);
+    if (VERBOSE)
     {
-        std::cout << (*node) << std::endl;
+        std::cout << g1 << std::endl;
+        std::cout << "Shortest path \n";
+        for (auto node : sp)
+        {
+            std::cout << (*node) << std::endl;
+        }
     }
 }
 
