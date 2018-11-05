@@ -9,8 +9,6 @@
 
 #include "opw_kinematics/opw_parameters.h"
 
-//#include <moveit/planning_scene/planning_scene.h>
-
 #include <Eigen/Dense>
 #include <string>
 #include <vector>
