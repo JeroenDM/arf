@@ -2,8 +2,6 @@
 
 #include <gtest/gtest.h>
 
-//#include "arf_trajectory/trajectory.h"
-
 std::vector<TrajectoryPoint> createTrajectory()
 {
   std::vector<TrajectoryPoint> ee_trajectory;

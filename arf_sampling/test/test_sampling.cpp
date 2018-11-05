@@ -3,6 +3,8 @@
 #include <gtest/gtest.h>
 #include <iostream>
 
+const bool VERBOSE = false;
+
 using Grid = std::vector<std::vector<double>>;
 
 void printGrid(Grid& grid);
@@ -19,7 +21,8 @@ TEST(Sampler, addDimensions)
     Grid expected = { { 0, 1, 99, 5 }, { 0, 1, 99, 6 }, { 0, 1, 99, 7 },
                       { 0, 2, 99, 5 }, { 0, 2, 99, 6 }, { 0, 2, 99, 7 } };
     compareGrids(grid, expected);
-    //printGrid(grid);
+    
+    if (VERBOSE) printGrid(grid);
     EXPECT_TRUE(true);
 }
 

@@ -54,11 +54,13 @@
   <build_depend>arf_trajectory</build_depend>
   <build_depend>moveit_visual_tools</build_depend>
   <build_depend>roscpp</build_depend>
+
   <build_export_depend>arf_graph</build_export_depend>
   <build_export_depend>arf_moveit_wrapper</build_export_depend>
   <build_export_depend>arf_trajectory</build_export_depend>
   <build_export_depend>moveit_visual_tools</build_export_depend>
   <build_export_depend>roscpp</build_export_depend>
+  
   <exec_depend>arf_graph</exec_depend>
   <exec_depend>arf_moveit_wrapper</exec_depend>
   <exec_depend>arf_trajectory</exec_depend>
