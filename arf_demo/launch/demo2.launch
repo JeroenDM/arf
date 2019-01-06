@@ -1,0 +1,4 @@
+<launch>
+    <rosparam command="load" file="$(find arf_demo)/config/task.yaml"/>
+    <node name="demo2" type="demo2" pkg="arf_demo" output="screen"/>
+</launch>

@@ -29,7 +29,7 @@ RedundantRobot::RedundantRobot() : RobotMoveitWrapper()
   auto bnd1 = joint_model_group_->getJointModel("rail_base_to_carrier")->getVariableBounds();
   //auto bnd2 = joint_model_group_->getJointModel("z_rail_to_robot_mount")->getVariableBounds();
 
-  sampler_.addDimension(bnd1[0].min_position_, bnd1[0].max_position_, 10);
+  sampler_.addDimension(bnd1[0].min_position_, bnd1[0].max_position_, 20);
   //sampler_.addDimension(bnd2[0].min_position_, bnd2[0].max_position_, 3);
 }
 
