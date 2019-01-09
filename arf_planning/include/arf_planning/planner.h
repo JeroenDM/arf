@@ -23,6 +23,11 @@ public:
   std::vector<std::vector<double>> getShortestPath() { return shortest_path_; }
   void showShortestPath(RedundantRobot& robot, moveit_visual_tools::MoveItVisualToolsPtr vs);
 
+  const std::vector<std::vector<double>>& getTPData(int index)
+  {
+    return graph_data_.at(index);
+  }
+
   bool run(RedundantRobot& robot, std::vector<TrajectoryPoint>& task);
 };
 
