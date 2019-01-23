@@ -45,7 +45,7 @@ class Rviz
         for (auto q : path)
         {
             robot.plot(visual_tools_, q);
-            ros::Duration(0.5).sleep();
+            ros::Duration(0.3).sleep();
         }
     }
 };
@@ -83,7 +83,8 @@ std::vector<TrajectoryPoint> createWeldLine(const Eigen::Affine3d start_pose, co
     {
         Number x(position[0]), y(position[1]), z(position[2]);
         Number ry(angles[1]);
-        TolerancedNumber rx(angles[0], angles[0] - 0.5, angles[0] + 0.5, 5);
+        Number rx(angles[0]);
+        //TolerancedNumber rx(angles[0], angles[0] - 0.5, angles[0] + 0.5, 5);
         TolerancedNumber rz(angles[2], angles[2] - 1.5, angles[2] + 1.5, 10);
         TrajectoryPoint tp(x, y, z, rx, ry, rz);
         line.push_back(tp);
@@ -96,14 +97,15 @@ std::vector<TrajectoryPoint> createWeldLine(const Eigen::Affine3d start_pose, co
     return line;
 }
 
-std::vector<TrajectoryPoint> createTrajectory2(ros::NodeHandle& nh, double x_ref = 0.0, double y_ref = 0.0, double z_ref = 0.0)
+std::vector<TrajectoryPoint> readTask(ros::NodeHandle& nh, const std::string task_name, Eigen::Vector3d wobj_pos)
 {
     // read points from parameter server
-    std::vector<double> p1, p2;
-    if (nh.hasParam("/task1"))
+    std::vector<double> p1, p2, angles;
+    if (nh.hasParam(task_name))
     {
-        nh.getParam("/task1/p1", p1);
-        nh.getParam("/task1/p2", p2);
+        nh.getParam(task_name + "/p1", p1);
+        nh.getParam(task_name + "/p2", p2);
+        nh.getParam(task_name + "/angles", angles);
     }
     else
     {
@@ -116,12 +118,13 @@ std::vector<TrajectoryPoint> createTrajectory2(ros::NodeHandle& nh, double x_ref
 
     // clang-format off
     Eigen::Affine3d start_pose;
-    start_pose = Translation(x_ref + p1[0], y_ref + p1[1], z_ref + p1[2]) *
-                 AngleAxis(M_PI_4, Vector::UnitX()) *
-                 AngleAxis(M_PI, Vector::UnitY());
+    start_pose = Translation(wobj_pos[0] + p1[0], wobj_pos[1] + p1[1], wobj_pos[2] + p1[2]) *
+                 AngleAxis(angles[0] * M_PI / 180.0, Vector::UnitX()) *
+                 AngleAxis(angles[1] * M_PI / 180.0 , Vector::UnitY()) *
+                 AngleAxis(angles[2] * M_PI / 180.0 , Vector::UnitZ());
     // clang-format on
 
-    Vector end_position(x_ref + p2[0], y_ref + p2[1], z_ref + p2[2]);
+    Vector end_position(wobj_pos[0] + p2[0], wobj_pos[1] + p2[1], wobj_pos[2] + p2[2]);
 
     return createWeldLine(start_pose, end_position, 10);
 }
@@ -134,7 +137,10 @@ struct WeldingTaskSolution
     JointPose start_joint_pose;
     JointPose end_joint_pose;
     std::vector<JointPose> joint_trajectory;
-    MoveitPlan motion_plan;    
+    MoveitPlan motion_plan;
+
+    // for debugging
+    std::vector<JointPose> tp_data;    
 };
 
 MoveitPlan jointTrajectoryToMoveitPlan(std::vector<JointPose> joint_trajectory)
@@ -228,6 +234,9 @@ WeldingTaskSolution planWeld(RedundantRobot robot, std::vector<TrajectoryPoint> 
         return solution;
     solution.success = true;
 
+    // for debugging
+    solution.tp_data = planner.getTPData(0);
+
     auto shortest_path = planner.getShortestPath();
 
     addApproachPath(shortest_path, robot);
@@ -276,30 +285,42 @@ int main(int argc, char** argv)
     Rviz rviz;
     rviz.clear();
 
-    auto traj = createTrajectory2(node_handle, offset[0], offset[1], offset[2]);
-    for (auto tp : traj)
+    //std::vector<std::string> task_names = {"/task1", "/task2", "/task3"};
+    std::vector<std::string> task_names;
+    node_handle.getParam("/task_names", task_names);
+    std::vector<std::vector<TrajectoryPoint>> trajectories;
+    std::vector<WeldingTaskSolution> solutions;
+
+    for (auto task_name : task_names)
     {
-        tp.plot(rviz.visual_tools_);
+        trajectories.push_back(readTask(node_handle, task_name, offset));
+        for (auto tp : trajectories.back()) tp.plot(rviz.visual_tools_);
+        solutions.push_back(planWeld(robot, trajectories.back()));
     }
 
-    auto solution = planWeld(robot, traj);
-
-    ROS_INFO_NAMED("tutorial", "Planner %s", solution.success ? "SUCCESS" : "FAILED");
-    if (!solution.success)
+    for (auto solution : solutions)
     {
-        ROS_INFO_STREAM("Planning the weld failed, stopping process.");
-        ros::shutdown();
-        return 0;
+        ROS_INFO("Planner %s", solution.success ? "SUCCESS" : "FAILED");
+        if (solution.success) rviz.animatePath(robot, solution.joint_trajectory);
     }
+ 
 
     //printJointTrajectory(solution.joint_trajectory);
     
-    //rviz.animatePath(robot, solution.joint_trajectory);
-    for (auto q : solution.joint_trajectory)
-    {
-        robot.plot(rviz.visual_tools_, q);
-        ros::Duration(0.5).sleep();
-    }
+    
+    // for (auto q : solution.joint_trajectory)
+    // {
+    //     robot.plot(rviz.visual_tools_, q);
+    //     ros::Duration(0.5).sleep();
+    // }
+
+    // ROS_INFO_STREAM("Number of js for tp 0: " << solution.tp_data.size());
+    // ROS_INFO("Showing the first 20.");
+    // for (auto q : solution.tp_data)
+    // {
+    //     robot.plot(rviz.visual_tools_, q);
+    //     ros::Duration(0.1).sleep();
+    // }
 
 
     // moveit::planning_interface::MoveGroupInterface move_group("manipulator");
