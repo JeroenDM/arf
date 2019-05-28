@@ -20,7 +20,9 @@ public:
 
   void plotPose(Eigen::Affine3d pose)
   {
-    visual_tools_->publishAxis(pose, rvt::LARGE);
+    Eigen::Isometry3d pose_temp;
+    pose_temp = pose.matrix();
+    visual_tools_->publishAxis(pose_temp, rvt::LARGE);
     visual_tools_->trigger();
   }
 
@@ -51,7 +53,8 @@ int main(int argc, char **argv)
     fk_pose.translate(p1);
 
     // visualize fk_pose
-    rviz.visual_tools_->publishAxisLabeled(fk_pose, "fk_pose");
+    Eigen::Isometry3d pose_temp(fk_pose.matrix());
+    rviz.visual_tools_->publishAxisLabeled(pose_temp, "fk_pose");
     rviz.visual_tools_->trigger();
 
     ros::Duration(1.0).sleep();

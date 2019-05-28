@@ -6,8 +6,12 @@
                 "limitSymbolsToIncludedHeaders": true
             },
             "includePath": [
-                "/opt/ros/kinetic/include",
-                "/usr/include"
+                "/opt/ros/melodic/include",
+                "/usr/include",
+                "/usr/include/eigen3",
+                "${workspaceFolder}/arf_moveit_wrapper/include",
+                "${workspaceFolder}/arf_sampling/include",
+                "${workspaceFolder}/../opw_kinematics/include"
             ],
             "name": "Linux",
             "intelliSenseMode": "gcc-x64"

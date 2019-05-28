@@ -82,7 +82,8 @@ std::vector<TrajectoryPoint> createPath()
 
 void Rviz::plotPose(Eigen::Affine3d pose)
 {
-  visual_tools_->publishAxis(pose, rvt::LARGE);
+  Eigen::Isometry3d pose_temp(pose.matrix());
+  visual_tools_->publishAxis(pose_temp, rvt::LARGE);
   visual_tools_->trigger();
 }
 
