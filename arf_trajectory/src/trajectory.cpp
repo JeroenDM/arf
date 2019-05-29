@@ -62,3 +62,57 @@ void TrajectoryPoint::plot(moveit_visual_tools::MoveItVisualToolsPtr mvt)
     mvt->publishAxis(nominal_pose_, rviz_visual_tools::LARGE);
     mvt->trigger();
 }
+
+FreeOrientationPoint::FreeOrientationPoint(Number& x, Number& y, Number& z, int samples, double timing)
+{
+    raw_numbers_[0] = &x;
+    raw_numbers_[1] = &y;
+    raw_numbers_[2] = &z;
+    std::vector<double> nominal_values = { x, y, z };
+    nominal_pose_ = valuesToPose(nominal_values);
+
+    num_samples_orientation = samples;
+
+    for (auto n : raw_numbers_)
+    {
+        sampler_.addDimension(n->lower_bound_, n->upper_bound_, n->num_samples_);
+    }
+    time_from_previous_point_ = timing;
+}
+
+Transform FreeOrientationPoint::valuesToPose(std::vector<double>& values)
+{
+    using Translation = Eigen::Translation3d;
+    using AngleAxis = Eigen::AngleAxisd;
+    using Vector = Eigen::Vector3d;
+
+    // clang-format off
+    Transform t;
+      t = Translation(values[0], values[1], values[2]);
+    return t;
+    // clang-format on
+}
+
+std::vector<Transform>  FreeOrientationPoint::getGridSamples()
+{
+    std::vector<Transform> poses;
+
+    // for (auto val : sampler_.getGridSamples())
+    // {
+    //     poses.push_back(valuesToPose(val));
+    // }
+
+    for ( std::size_t i=0; i < num_samples_orientation; ++i)
+    {
+        Transform new_pose = nominal_pose_ * Eigen::Quaterniond::UnitRandom();
+        poses.push_back(new_pose);
+    }
+
+    return poses;
+}
+
+void FreeOrientationPoint::plot(moveit_visual_tools::MoveItVisualToolsPtr mvt)
+{
+    mvt->publishAxis(nominal_pose_, rviz_visual_tools::LARGE);
+    mvt->trigger();
+}

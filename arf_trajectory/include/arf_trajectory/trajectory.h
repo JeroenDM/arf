@@ -68,4 +68,26 @@ class TrajectoryPoint
     void plot(moveit_visual_tools::MoveItVisualToolsPtr mvt);
 };
 
+class FreeOrientationPoint
+{  
+    std::array<Number*, 3> raw_numbers_; /* x, y, z */
+    Transform nominal_pose_;
+    Sampler sampler_;
+    double time_from_previous_point_;
+    int num_samples_orientation;
+
+    Transform valuesToPose(std::vector<double>& values);
+
+  public:
+    FreeOrientationPoint(Number& x, Number& y, Number& z, int samples, double timing = 0.1);
+    ~FreeOrientationPoint() = default;
+
+    std::vector<Transform> getGridSamples();
+    Transform getNominalPose()
+    {
+        return nominal_pose_;
+    }
+    void plot(moveit_visual_tools::MoveItVisualToolsPtr mvt);
+};
+
 #endif
