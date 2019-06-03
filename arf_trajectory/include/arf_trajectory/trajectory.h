@@ -37,7 +37,7 @@ struct TolerancedNumber : public Number
 {
     TolerancedNumber(double n, double l, double u, int s = 10) : Number(n, l, u, s)
     {
-        checkInput();
+      checkInput();
     }
 
   private:

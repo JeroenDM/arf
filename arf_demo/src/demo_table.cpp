@@ -29,6 +29,7 @@ public:
   void sampleNearSolution(Robot& robot, Rviz& rviz, double dist);
   void showTrajectory(Rviz& rviz);
   void readTaskFromYaml(const std::string filename);
+  void readTask1(ros::NodeHandle& nh);
 };
 
 std::vector<TrajectoryPoint> createPath();
@@ -46,21 +47,21 @@ int main(int argc, char** argv)
 
   rviz.clear();
 
-  std::string filename = ros::package::getPath("arf_demo") + "/config/table_task.csv";
-
   // task z-axis tolerance
-  demo1.createTrajectory();
+  demo1.readTask1(node_handle);
+  // demo1.createTrajectory();
   demo1.showTrajectory(rviz);
   demo1.createGraphData(robot, rviz);
 
   // task orientation free
+  //std::string filename = ros::package::getPath("arf_demo") + "/config/table_task.csv";
   // demo1.readTaskFromYaml(filename);
   // demo1.orientationFreeSampling(robot);
 
   demo1.calculateShortestPath(robot);
   demo1.showShortestPath(robot, rviz);
 
-  std::vector<double> home = {0, 0, 0, 0, 0, 0};
+  std::vector<double> home = {0, -1.5, 1.5, 0, 0, 0};
   robot.plot(rviz.visual_tools_, home);
 
   // demo1.sampleNearSolution(robot, rviz, 0.2);
@@ -82,6 +83,92 @@ int main(int argc, char** argv)
   ros::shutdown();
 
   return 0;
+}
+
+TrajectoryPoint createPointFromParameters(ros::NodeHandle& nh, const std::string absolute_path)
+{
+  std::vector<double> pose, ld, ud;
+  std::vector<int> ns;
+
+  //nh.getParam(absolute_path + "/type", type);
+  nh.getParam(absolute_path + "/pose", pose);
+  nh.getParam(absolute_path + "/num_samples", ns);
+  nh.getParam(absolute_path + "/lower_delta", ld);
+  nh.getParam(absolute_path + "/upper_delta", ud);
+
+  std::vector<std::shared_ptr<Number>> values;
+  for (int i = 0; i < 6; ++i)
+  {
+    if (ns[i] == 0)
+    {
+      values.push_back(
+        std::make_shared<Number>(pose[i])
+      );
+    }
+    else
+    {
+      values.push_back(
+        std::make_shared<TolerancedNumber>(
+          pose[i], pose[i] - ld[i], pose[i] + ud[i], ns[i]
+        )
+      );
+    }
+  }
+
+  // TolerancedNumber x(pose[0], pose[0] - ld[0], pose[0] + ud[0], ns[0]);
+  // Number x(pose[0]);
+  // Number y(pose[1]);
+  // Number z(pose[2]);
+  // Number rx(pose[3]);
+  // TolerancedNumber ry(pose[4], pose[4] - ld[4], pose[4] + ud[4], ns[4]);
+  // TolerancedNumber rz(pose[5], pose[5] - ld[5], pose[5] + ud[5], ns[5]);
+
+  // TrajectoryPoint tp(x, y, z, rx, ry, rz);
+
+  TrajectoryPoint tp(
+    *values[0], *values[1], *values[2], *values[3], *values[4], *values[5]
+  );
+  return tp;
+}
+
+void Demo1::readTask1(ros::NodeHandle& nh)
+{
+  ee_trajectory_.clear();
+  std::vector<double> ud, ld;
+  std::string task_name = "path";
+  if (nh.hasParam(task_name))
+  {
+      int num_steps = 0;
+      nh.getParam(task_name + "/num_steps", num_steps);
+      ROS_INFO_STREAM("Found path of length: " << num_steps);
+      
+      for (int i = 0; i < num_steps; ++i)
+      {
+        ee_trajectory_.push_back(
+          createPointFromParameters(nh, task_name + "/point_" + std::to_string(i))
+        );
+      }
+  }
+  else
+  {
+      ROS_ERROR_STREAM("Failed to read a path from parameter server");
+  }
+
+  // for (int i = 0; i < ud.size(); ++i)
+  // {
+  //   std::cout << "ud: " << ud[i] << "  ld: " << ld[i] << std::endl;
+  // }
+  // for (int i = 0; i < 10; ++i)
+  // {
+  //   Number x(0.8);
+  //   Number y(-0.2 + static_cast<double>(i) / 20);
+  //   Number z(0.2);
+  //   Number rx; //, ry(-M_PI);
+  //   TolerancedNumber ry(-M_PI, -M_PI - ld[4], -M_PI + ud[4], 5);
+  //   TolerancedNumber rz(0, -ld[5], ud[5], 20);
+  //   TrajectoryPoint tp(x, y, z, rx, ry, rz);
+  //   ee_trajectory_.push_back(tp);
+  // }
 }
 
 void Demo1::createTrajectory()
