@@ -66,13 +66,14 @@ IKSolution RedundantRobot::redundantIk(const Eigen::Affine3d& pose, std::vector<
   auto base_link_pose = fk(q_dummy, "base_link");
 
   // get tool pose corrected for tool tip to tool0 frame
-  auto tool0_to_tool_tip = getLinkFixedRelativeTransform("torch") * getLinkFixedRelativeTransform("tool_tip");
+  //auto tool0_to_tool_tip = getLinkFixedRelativeTransform("torch") * getLinkFixedRelativeTransform("tool_tip");
 
   // tranfrom pose to reference frame of 6dof robot
-  auto sub_robot_pose = base_link_pose.inverse() * pose * tool0_to_tool_tip.inverse();
+  auto sub_robot_pose = base_link_pose.inverse() * pose; // * tool0_to_tool_tip.inverse();
+  Eigen::Isometry3d temp_pose(sub_robot_pose.matrix());
 
   // solve ik
-  auto solution = ik(sub_robot_pose);
+  auto solution = ik(temp_pose);
 
   for (auto& q_sol : solution)
   {

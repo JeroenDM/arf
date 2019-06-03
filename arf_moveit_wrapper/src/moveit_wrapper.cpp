@@ -95,7 +95,7 @@ const Eigen::Affine3d RobotMoveitWrapper::fk(const std::vector<double>& q, const
     return kinematic_state_->getGlobalLinkTransform(frame);
 }
 
-const IKSolution RobotMoveitWrapper::ik(const Eigen::Affine3d pose)
+const IKSolution RobotMoveitWrapper::ik(const Transform pose)
 {
       IKSolution joint_poses;
 
@@ -104,8 +104,14 @@ const IKSolution RobotMoveitWrapper::ik(const Eigen::Affine3d pose)
     // or a different base frame
     // Eigen::Affine3d tool_pose = diff_base.inverse() * pose *
     // tip_frame.inverse();
+
+
+    // convert pose from tool_tip to tool0 frame
+    auto temp = getLinkFixedRelativeTransform("torch") * getLinkFixedRelativeTransform("tool_tip");
+    Transform tool0_to_tool_tip(temp.matrix());
+    tool0_to_tool_tip = tool0_to_tool_tip.inverse();
     Eigen::Isometry3d pose_temp;
-    pose_temp = pose.matrix();
+    pose_temp = pose * tool0_to_tool_tip;
 
     std::array<double, 6 * 8> sols;
     opw_kinematics::inverse(robot_parameters_, pose_temp, sols.data());
