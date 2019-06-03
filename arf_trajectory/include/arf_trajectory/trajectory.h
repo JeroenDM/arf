@@ -10,6 +10,7 @@
 #include "arf_sampling/sampling.h"
 
 using Transform = Eigen::Isometry3d;
+using Quaternion = Eigen::Quaterniond;
 
 struct Number
 {
@@ -71,23 +72,29 @@ class TrajectoryPoint
 class FreeOrientationPoint
 {  
     std::array<Number*, 3> raw_numbers_; /* x, y, z */
-    Transform nominal_pose_;
+    
     Sampler sampler_;
     double time_from_previous_point_;
-    int num_samples_orientation;
 
     Transform valuesToPose(std::vector<double>& values);
 
   public:
-    FreeOrientationPoint(Number& x, Number& y, Number& z, int samples, double timing = 0.1);
+    FreeOrientationPoint(Number& x, Number& y, Number& z, Number& rx, Number& ry, Number& rz, double timing = 0.1);
     ~FreeOrientationPoint() = default;
 
-    std::vector<Transform> getGridSamples();
+    std::vector<Transform> sampleUniform(int n = 100);
+    std::vector<Transform> sampleUniformNear(double dist, int n = 100);
     Transform getNominalPose()
     {
         return nominal_pose_;
     }
+    void setNominalPose(Transform& new_pose)
+    {
+      nominal_pose_ = new_pose;
+    }
     void plot(moveit_visual_tools::MoveItVisualToolsPtr mvt);
+
+    Transform nominal_pose_;
 };
 
 #endif
