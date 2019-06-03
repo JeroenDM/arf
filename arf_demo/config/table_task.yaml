@@ -1,0 +1,107 @@
+{
+  "basic_info" :
+  {
+    "n_steps" : 10
+  },
+  "constraints" :
+  {
+    "name" : "waypoint_1",
+    "type" : "cart_pose_free_ori",
+    "params" :
+    {
+      "timestep" : 0,
+      "xyz" : [0.8, -0.2, 0.2],
+      "rpy" : [0.0, 3.14159265359, 0.0]
+    }
+  },
+  {
+    "name" : "waypoint_2",
+    "type" : "cart_pose_free_ori",
+    "params" :
+    {
+      "timestep" : 0,
+      "xyz" : [0.8, -0.15555556, 0.2],
+      "rpy" : [0.0, 3.14159265359, 0.0]
+    } 
+  },
+  {
+    "name" : "waypoint_3",
+    "type" : "cart_pose_free_ori",
+    "params" :
+    {
+      "timestep" : 0,
+      "xyz" : [0.8, -0.11111111, 0.2],
+      "rpy" : [0.0, 3.14159265359, 0.0]
+    }
+  },
+  {
+    "name" : "waypoint_4",
+    "type" : "cart_pose_free_ori",
+    "params" :
+    {
+      "timestep" : 0,
+      "xyz" : [0.8, -0.06666667, 0.2],
+      "rpy" : [0.0, 3.14159265359, 0.0]
+    }
+  },
+  {
+    "name" : "waypoint_5",
+    "type" : "cart_pose_free_ori",
+    "params" :
+    {
+      "timestep" : 0,
+      "xyz" : [0.8, -0.02222222, 0.2],
+      "rpy" : [0.0, 3.14159265359, 0.0]
+    }
+  },
+  {
+    "name" : "waypoint_6",
+    "type" : "cart_pose_free_ori",
+    "params" :
+    {
+      "timestep" : 0,
+      "xyz" : [0.8, 0.02222222, 0.2],
+      "rpy" : [0.0, 3.14159265359, 0.0]
+    }
+  },
+  {
+    "name" : "waypoint_7",
+    "type" : "cart_pose_free_ori",
+    "params" :
+    {
+      "timestep" : 0,
+      "xyz" : [0.8, 0.06666667, 0.2],
+      "rpy" : [0.0, 3.14159265359, 0.0]
+    }
+  },
+  {
+    "name" : "waypoint_8",
+    "type" : "cart_pose_free_ori",
+    "params" :
+    {
+      "timestep" : 0,
+      "xyz" : [0.8, 0.11111111, 0.2],
+      "rpy" : [0.0, 3.14159265359, 0.0]
+    }
+  },
+  {
+    "name" : "waypoint_9",
+    "type" : "cart_pose_free_ori",
+    "params" :
+    {
+      "timestep" : 0,
+      "xyz" : [0.8, 0.15555556, 0.2],
+      "rpy" : [0.0, 3.14159265359, 0.0]
+    }
+  },
+  {
+    "name" : "waypoint_10",
+    "type" : "cart_pose_free_ori",
+    "params" :
+    {
+      "timestep" : 0,
+      "xyz" : [0.8, 0.2, 0.2],
+      "rpy" : [0.0, 3.14159265359, 0.0]
+    }
+  }
+}
