@@ -31,6 +31,7 @@ class Graph
     Graph(std::vector<std::vector<JointPose>>& path_joint_poses);
     ~Graph() = default;
 
+    double last_path_cost;
     void addPathPointData(std::vector<JointPose>& joint_poses);
     const std::vector<std::vector<Node>>& getNodes() const;
     std::vector<Node*> getNeighbors(Node* node);

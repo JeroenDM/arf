@@ -144,7 +144,7 @@ std::vector<Node*> Graph::getShortestPath()
             }
         }
 
-        // shortest_path_cost = min_dist;
+        last_path_cost = min_dist;
 
         Node* current_node = goal;
         while ((*current_node).path_index > 0)

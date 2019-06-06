@@ -28,4 +28,6 @@ void Rviz::clear()
 {
   visual_tools_->deleteAllMarkers();
   visual_tools_->trigger();
+  // short pause to make sure everything is deleted
+  ros::Duration(0.1).sleep();
 }

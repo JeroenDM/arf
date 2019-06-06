@@ -1,0 +1,4 @@
+<launch>
+    <rosparam command="load" file="$(find arf_demo)/config/table_task_2.yaml"/>
+    <node name="demo_table" type="demo_table" pkg="arf_demo" output="screen"/>
+</launch>
