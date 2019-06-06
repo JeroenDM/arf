@@ -1,0 +1,1 @@
+- git: {local-name : opw_kinematics, uri: 'https://github.com/Jmeyer1292/opw_kinematics.git', version: master}
