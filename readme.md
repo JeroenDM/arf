@@ -1,3 +1,7 @@
+[![Build Status](https://travis-ci.org/JeroenDM/arf.svg?branch=melodic-devel)](https://travis-ci.org/JeroenDM/arf)
+[![Documentation Status](https://readthedocs.org/projects/arf/badge/?version=latest)](https://arf.readthedocs.io/en/latest/?badge=latest)
+
+
 # Acro Robotics Framework
 
 Package inspired by an existing ROS package [descartes](https://github.com/ros-industrial-consortium/descartes).
