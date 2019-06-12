@@ -299,6 +299,7 @@ int main(int argc, char** argv)
         solutions.push_back(planWeld(robot, trajectories.back()));
     }
 
+    // animate cartesian trajectories that where planned
     for (auto solution : solutions)
     {
         ROS_INFO("Planner %s", solution.success ? "SUCCESS" : "FAILED");
@@ -308,13 +309,7 @@ int main(int argc, char** argv)
 
     //printJointTrajectory(solution.joint_trajectory);
     
-    
-    // for (auto q : solution.joint_trajectory)
-    // {
-    //     robot.plot(rviz.visual_tools_, q);
-    //     ros::Duration(0.5).sleep();
-    // }
-
+    // show joint solutions of one trajectory point
     // ROS_INFO_STREAM("Number of js for tp 0: " << solution.tp_data.size());
     // ROS_INFO("Showing the first 20.");
     // for (auto q : solution.tp_data)
@@ -327,7 +322,7 @@ int main(int argc, char** argv)
     // moveit::planning_interface::MoveGroupInterface move_group("manipulator");
     // moveit::planning_interface::MoveGroupInterface::Plan plan1, plan2, plan3;
 
-    // move_group.setJointValueTarget(solution.start_joint_pose);
+    // move_group.setJointValueTarget(solutions[0].start_joint_pose);
     // bool success1 = (move_group.plan(plan1) == moveit::planning_interface::MoveItErrorCode::SUCCESS);
     // ROS_INFO_NAMED("tutorial", "Go to approach pose %s", success1 ? "SUCCESS" : "FAILED");
 
@@ -344,12 +339,13 @@ int main(int argc, char** argv)
     //     rviz.plotPose(pose);
     // }
 
-    // addPlans(plan1, solution.motion_plan);
+    // addPlans(plan1, solutions[0].motion_plan);
     //ROS_INFO_STREAM("Sol plan: " << solution.motion_plan.trajectory_);
     //ROS_INFO_STREAM("plan plan: " << plan1.trajectory_);
 
-    //move_group.execute(plan1);
-    //ros::Duration(1.0).sleep();
+    // move_group.execute(plan1);
+    // ros::Duration(1.0).sleep();
+    // rviz.animatePath(robot, solutions[0].joint_trajectory);
 
     //move_group.execute(solution.motion_plan);
     //ros::Duration(1.0).sleep();

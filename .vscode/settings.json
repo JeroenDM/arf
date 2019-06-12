@@ -79,5 +79,6 @@
                 }
             }
         ]
-    }
+    },
+    "ros.distro": "melodic"
 }
