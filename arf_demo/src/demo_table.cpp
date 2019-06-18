@@ -1,16 +1,16 @@
-#include <ros/ros.h>
-#include <vector>
 #include <Eigen/Dense>
-#include <fstream>
-#include <string>
-#include <sstream>
 #include <chrono>
+#include <fstream>
+#include <ros/ros.h>
+#include <sstream>
+#include <string>
+#include <vector>
 
-#include "ros/package.h"
-#include "arf_moveit_wrapper/moveit_wrapper.h"
-#include "arf_trajectory/trajectory.h"
 #include "arf_graph/graph.h"
 #include "arf_graph/util.h"
+#include "arf_moveit_wrapper/moveit_wrapper.h"
+#include "arf_trajectory/trajectory.h"
+#include "ros/package.h"
 
 #include "util.h"
 
@@ -36,7 +36,8 @@ public:
 
 std::vector<TrajectoryPoint> createPath();
 
-void showResults(std::vector<std::chrono::duration<double>>& times, std::vector<double> costs)
+void showResults(std::vector<std::chrono::duration<double>>& times,
+                 std::vector<double> costs)
 {
   ROS_INFO_STREAM("========================================");
   ROS_INFO_STREAM("Timing results");
@@ -66,7 +67,8 @@ int main(int argc, char** argv)
   // demo1.createGraphData(robot, rviz);
 
   // task orientation free
-  std::string filename = ros::package::getPath("arf_demo") + "/config/table_task.csv";
+  std::string filename =
+      ros::package::getPath("arf_demo") + "/config/table_task.csv";
   demo1.readTaskFromYaml(filename);
   demo1.showTrajectory(rviz);
 
@@ -80,14 +82,13 @@ int main(int argc, char** argv)
   times.push_back(stop - start);
   costs.push_back(demo1.last_path_cost_);
 
-
   demo1.showShortestPath(robot, rviz);
 
   std::vector<double> home = {0, -1.5, 1.5, 0, 0, 0};
   robot.plot(rviz.visual_tools_, home);
 
   double dist = 0.2;
-  for (int i=0; i < 3; ++i)
+  for (int i = 0; i < 3; ++i)
   {
     ROS_INFO_STREAM("Sampling iteration " << i);
 
@@ -111,12 +112,13 @@ int main(int argc, char** argv)
   return 0;
 }
 
-TrajectoryPoint createPointFromParameters(ros::NodeHandle& nh, const std::string absolute_path)
+TrajectoryPoint createPointFromParameters(ros::NodeHandle& nh,
+                                          const std::string absolute_path)
 {
   std::vector<double> pose, ld, ud;
   std::vector<int> ns;
 
-  //nh.getParam(absolute_path + "/type", type);
+  // nh.getParam(absolute_path + "/type", type);
   nh.getParam(absolute_path + "/pose", pose);
   nh.getParam(absolute_path + "/num_samples", ns);
   nh.getParam(absolute_path + "/lower_delta", ld);
@@ -127,17 +129,12 @@ TrajectoryPoint createPointFromParameters(ros::NodeHandle& nh, const std::string
   {
     if (ns[i] == 0)
     {
-      values.push_back(
-        std::make_shared<Number>(pose[i])
-      );
+      values.push_back(std::make_shared<Number>(pose[i]));
     }
     else
     {
-      values.push_back(
-        std::make_shared<TolerancedNumber>(
-          pose[i], pose[i] - ld[i], pose[i] + ud[i], ns[i]
-        )
-      );
+      values.push_back(std::make_shared<TolerancedNumber>(
+          pose[i], pose[i] - ld[i], pose[i] + ud[i], ns[i]));
     }
   }
 
@@ -151,9 +148,8 @@ TrajectoryPoint createPointFromParameters(ros::NodeHandle& nh, const std::string
 
   // TrajectoryPoint tp(x, y, z, rx, ry, rz);
 
-  TrajectoryPoint tp(
-    *values[0], *values[1], *values[2], *values[3], *values[4], *values[5]
-  );
+  TrajectoryPoint tp(*values[0], *values[1], *values[2], *values[3], *values[4],
+                     *values[5]);
   return tp;
 }
 
@@ -164,20 +160,19 @@ void Demo1::readTask1(ros::NodeHandle& nh)
   std::string task_name = "path";
   if (nh.hasParam(task_name))
   {
-      int num_steps = 0;
-      nh.getParam(task_name + "/num_steps", num_steps);
-      ROS_INFO_STREAM("Found path of length: " << num_steps);
-      
-      for (int i = 0; i < num_steps; ++i)
-      {
-        ee_trajectory_.push_back(
-          createPointFromParameters(nh, task_name + "/point_" + std::to_string(i))
-        );
-      }
+    int num_steps = 0;
+    nh.getParam(task_name + "/num_steps", num_steps);
+    ROS_INFO_STREAM("Found path of length: " << num_steps);
+
+    for (int i = 0; i < num_steps; ++i)
+    {
+      ee_trajectory_.push_back(createPointFromParameters(
+          nh, task_name + "/point_" + std::to_string(i)));
+    }
   }
   else
   {
-      ROS_ERROR_STREAM("Failed to read a path from parameter server");
+    ROS_ERROR_STREAM("Failed to read a path from parameter server");
   }
 
   // for (int i = 0; i < ud.size(); ++i)
@@ -246,11 +241,11 @@ void Demo1::readTaskFromYaml(const std::string filename)
     }
     std::stringstream line_stream(line);
     pt.clear();
-    while(std::getline(line_stream, number, ','))
+    while (std::getline(line_stream, number, ','))
     {
       pt.push_back(std::stod(number));
     }
-    
+
     Number x(pt[0]), y(pt[1]), z(pt[2]);
     Number rx(pt[3]), ry(pt[4]), rz(pt[5]);
     FreeOrientationPoint tp(x, y, z, rx, ry, rz);
@@ -300,7 +295,7 @@ void Demo1::sampleNearSolution(Robot& robot, Rviz& rviz, double dist)
 {
   if (shortest_path_.size() < 1)
   {
-    throw std::invalid_argument("There is no solution to sample around."); 
+    throw std::invalid_argument("There is no solution to sample around.");
   }
 
   graph_data_.clear();
@@ -329,12 +324,12 @@ void Demo1::calculateShortestPath(Robot& robot)
   Graph demo_graph(graph_data_);
   demo_graph.runMultiSourceDijkstra();
   std::vector<Node*> sp = demo_graph.getShortestPath();
-  //std::cout << "Shortest path \n";
-  
+  // std::cout << "Shortest path \n";
+
   shortest_path_.clear();
   for (auto node : sp)
   {
-    //std::cout << (*node) << std::endl;
+    // std::cout << (*node) << std::endl;
     shortest_path_.push_back(*(*node).jv);
   }
 
