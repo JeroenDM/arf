@@ -17,6 +17,9 @@
 #include "arf_graph/util.h"
 #include "arf_planning/planner.h"
 
+#include "arf_demo/TrajOptPlanningServer.h"
+#include "trajectory_msgs/JointTrajectory.h"
+
 namespace rvt = rviz_visual_tools;
 using MoveitPlan = moveit::planning_interface::MoveGroupInterface::Plan;
 
@@ -265,6 +268,33 @@ void addPlans(MoveitPlan& plan_a, MoveitPlan& plan_b)
     }
 }
 
+std::vector<JointPose> planPTP(std::vector<double> start, std::vector<double> goal, ros::NodeHandle& node_handle)
+{
+    ros::ServiceClient client = node_handle.serviceClient<arf_demo::TrajOptPlanningServer>("trajopt_planning_server");
+    arf_demo::TrajOptPlanningServer srv;
+
+    srv.request.start = start;
+    srv.request.goal = goal;
+    srv.request.num_path_points = 20;
+    srv.request.type = "joint_goal";
+
+    if (client.call(srv))
+    {
+        ROS_INFO_STREAM("Result of planning request: " << std::to_string(srv.response.success));
+        ROS_INFO_STREAM(srv.response);
+    }
+    else
+    {
+        ROS_ERROR("Failed to call service trajopt_planning_server");
+    }
+    std::vector<JointPose> solution;
+    for (auto pt : srv.response.trajectory)
+    {
+        solution.push_back(pt.positions);
+    }
+    return solution;
+}
+
 int main(int argc, char** argv)
 {
     ros::init(argc, argv, "demo2");
@@ -273,6 +303,22 @@ int main(int argc, char** argv)
     spinner.start();
 
     ROS_INFO("Demo 2");
+
+    // de verschillende configuraties voor de drie laslijnen maken dat de tussenin paden moeilijk gaan
+    // dus ideaal gezien
+    // 1) trajopt joint_pose -> next start pose
+    // 2) descartes joint_pose at first tp -> cart_pose.
+    // REPEAT
+
+    // test planning server
+    // ======================================================================================
+    // std::vector<double> zeros = {0, 0, 0, 0, 0, 0, 0};
+    // std::vector<double> goal = {0.984902, -2.70526, -0.336027, 0.191903, 2.40635, 1.70897, 1.92218};
+
+    // auto ptp_solution = planPTP(zeros, goal, node_handle);
+
+    // case
+    // ======================================================================================
 
     moveit::planning_interface::MoveGroupInterface table("rotation_table");
     robot_state::RobotState table_state(*table.getCurrentState());
@@ -300,12 +346,60 @@ int main(int argc, char** argv)
     }
 
     // animate cartesian trajectories that where planned
-    for (auto solution : solutions)
+    // for (auto solution : solutions)
+    // {
+    //     ROS_INFO("Planner %s", solution.success ? "SUCCESS" : "FAILED");
+    //     if (solution.success) rviz.animatePath(robot, solution.joint_trajectory);
+    // }
+
+    std::vector<std::vector<JointPose>> in_between_sols;
+    // plan from home to start
+    std::vector<double> zeros = {0, 0, -1.5708, 1.5708, 0, 0, 0};
+    auto ptp_sol_1 = planPTP(zeros, solutions[0].joint_trajectory.front(), node_handle);
+    in_between_sols.push_back(ptp_sol_1);
+
+
+    auto ptp_sol_2 = planPTP(
+        solutions[0].joint_trajectory.back(),
+        solutions[1].joint_trajectory[0],
+        node_handle);
+    in_between_sols.push_back(ptp_sol_2);
+
+    auto ptp_sol_3 = planPTP(
+        solutions[1].joint_trajectory.back(),
+        solutions[2].joint_trajectory[0],
+        node_handle);
+    in_between_sols.push_back(ptp_sol_3);
+
+    // plan to home
+    auto ptp_sol_4 = planPTP(solutions[2].joint_trajectory.back(), zeros, node_handle);
+    in_between_sols.push_back(ptp_sol_4);
+
+    // for (int i = 1; i < solutions.size(); ++i)
+    // {
+    //     auto ptp_sol = planPTP(
+    //         solutions[i - 1].joint_trajectory.back(),
+    //         solutions[i].joint_trajectory.front(),
+    //         node_handle
+    //     );
+    //     if (ptp_sol.size() > 0)
+    //     {
+    //         in_between_sols.push_back(ptp_sol);
+    //     }
+    //     else
+    //     {
+    //         ROS_ERROR_STREAM("Failed to find in between solution");
+    //     } 
+    // }
+
+    for (int i = 0; i < 3; ++i)
     {
-        ROS_INFO("Planner %s", solution.success ? "SUCCESS" : "FAILED");
-        if (solution.success) rviz.animatePath(robot, solution.joint_trajectory);
+        rviz.animatePath(robot, in_between_sols[i]);
+        rviz.animatePath(robot, solutions[i].joint_trajectory);
     }
+    rviz.animatePath(robot, in_between_sols.back());
  
+    // ======================================================================================
 
     //printJointTrajectory(solution.joint_trajectory);
     

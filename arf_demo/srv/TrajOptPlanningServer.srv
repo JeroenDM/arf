@@ -1,0 +1,8 @@
+float64[] start
+float64[] goal
+geometry_msgs/Pose goal_pose
+string type
+int32 num_path_points
+---
+bool success
+trajectory_msgs/JointTrajectoryPoint[] trajectory

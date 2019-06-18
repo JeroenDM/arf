@@ -16,6 +16,22 @@ find_package(catkin REQUIRED COMPONENTS
   moveit_visual_tools
   arf_planning
   moveit_ros_planning_interface
+  std_msgs
+  trajectory_msgs
+  geometry_msgs
+  message_generation
+)
+
+add_service_files(
+  FILES
+  TrajOptPlanningServer.srv
+)
+
+generate_messages(
+  DEPENDENCIES
+  std_msgs
+  trajectory_msgs
+  geometry_msgs
 )
 
 ################################################
