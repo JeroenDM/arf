@@ -22,6 +22,13 @@ find_package(catkin REQUIRED COMPONENTS
   message_generation
 )
 
+# Let's try to use open-mp parallization if we can
+find_package(OpenMP)
+if (OPENMP_FOUND)
+  message(STATUS "ARF will use OpenMP")
+  set(OpenMP_FLAGS ${OpenMP_CXX_FLAGS})
+endif()
+
 add_service_files(
   FILES
   TrajOptPlanningServer.srv
