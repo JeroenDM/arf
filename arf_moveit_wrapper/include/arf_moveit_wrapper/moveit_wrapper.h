@@ -20,17 +20,18 @@ opw_kinematics::Parameters<T> makeKukaKr5()
 {
   opw_kinematics::Parameters<T> p;
   p.a1 = T(0.180);
-  p.a2 = T(-0.120);
+  p.a2 = T(0.000);
   p.b =  T(0.000);
-  p.c1 = T(0.400);
+  p.c1 = T(0.000);
   p.c2 = T(0.600);
   p.c3 = T(0.620);
   p.c4 = T(0.115);
 
   p.offsets[1] = -M_PI / 2.0;
-  p.sign_corrections[0] = -1;
-  p.sign_corrections[3] = -1;
-  p.sign_corrections[5] = -1;
+  p.offsets[2] = -M_PI / 2.0;
+  p.sign_corrections[1] = -1;
+  p.sign_corrections[2] = -1;
+  p.sign_corrections[4] = -1;
 
   return p;
 }

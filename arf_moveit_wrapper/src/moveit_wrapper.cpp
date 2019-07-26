@@ -106,15 +106,15 @@ const IKSolution RobotMoveitWrapper::ik(const Transform pose)
     // tip_frame.inverse();
 
 
-    // convert pose from tool_tip to tool0 frame
-    auto temp = getLinkFixedRelativeTransform("torch") * getLinkFixedRelativeTransform("tool_tip");
-    Transform tool0_to_tool_tip(temp.matrix());
-    tool0_to_tool_tip = tool0_to_tool_tip.inverse();
-    Eigen::Isometry3d pose_temp;
-    pose_temp = pose * tool0_to_tool_tip;
+    // // convert pose from tool_tip to tool0 frame
+    // auto temp = getLinkFixedRelativeTransform("tool0") * getLinkFixedRelativeTransform("tool_tip");
+    // Transform tool0_to_tool_tip(temp.matrix());
+    // tool0_to_tool_tip = tool0_to_tool_tip.inverse();
+    // Eigen::Isometry3d pose_temp;
+    // pose_temp = pose * tool0_to_tool_tip;
 
     std::array<double, 6 * 8> sols;
-    opw_kinematics::inverse(robot_parameters_, pose_temp, sols.data());
+    opw_kinematics::inverse(robot_parameters_, pose, sols.data());
 
     // Check the output
     std::vector<double> tmp(6);  // temporary storage for API reasons
