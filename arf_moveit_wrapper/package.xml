@@ -54,14 +54,12 @@
   <build_depend>roscpp</build_depend>
   <build_depend>moveit_ros_planning</build_depend>
   <build_depend>moveit_visual_tools</build_depend>
-  <build_depend>opw_kinematics</build_depend>
   <build_depend>arf_sampling</build_depend>
 
   <build_export_depend>moveit_core</build_export_depend>
   <build_export_depend>roscpp</build_export_depend>
   <build_export_depend>moveit_ros_planning</build_export_depend>
   <build_export_depend>moveit_visual_tools</build_export_depend>
-  <build_export_depend>opw_kinematics</build_export_depend>
   <build_export_depend>arf_sampling</build_export_depend>
 
   <exec_depend>moveit_core</exec_depend>
