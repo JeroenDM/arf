@@ -33,7 +33,6 @@
 
   <build_depend>roscpp</build_depend>
   <build_depend>arf_moveit_wrapper</build_depend>
-  <build_depend>arf_path</build_depend>
   <build_depend>arf_trajectory</build_depend>
   <build_depend>arf_planning</build_depend>
   <build_depend>moveit_visual_tools</build_depend>
