@@ -8,9 +8,10 @@ find_package(catkin REQUIRED COMPONENTS
   moveit_core
   moveit_ros_planning
   moveit_visual_tools
-  opw_kinematics
   arf_sampling
 )
+
+find_package(opw_kinematics REQUIRED)
 
 find_package(Eigen3 REQUIRED)
 if(NOT EIGEN3_INCLUDE_DIRS)
@@ -20,8 +21,8 @@ endif()
 catkin_package(
   INCLUDE_DIRS include
   LIBRARIES ${PROJECT_NAME}
-  CATKIN_DEPENDS opw_kinematics moveit_core moveit_ros_planning opw_kinematics
-  DEPENDS EIGEN3
+  CATKIN_DEPENDS moveit_core moveit_ros_planning
+  DEPENDS EIGEN3 opw_kinematics::opw_kinematics
 )
 
 ###########
@@ -43,6 +44,7 @@ add_library(
 
 target_link_libraries(${PROJECT_NAME}
   ${catkin_LIBRARIES}
+  opw_kinematics::opw_kinematics
 )
 
 # main node for quick testing purpose

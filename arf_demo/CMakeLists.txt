@@ -12,7 +12,6 @@ find_package(catkin REQUIRED COMPONENTS
   arf_moveit_wrapper 
   arf_graph
   arf_trajectory
-  opw_kinematics
   moveit_visual_tools
   arf_planning
   moveit_ros_planning_interface
