@@ -27,12 +27,20 @@ public:
   void createGraphData(Robot& robot, Rviz& rviz);
   void calculateShortestPath(Robot& robot);
   void showShortestPath(Robot& robot, Rviz& rviz);
-  void orientationFreeSampling(Robot& robot);
-  void sampleNearSolution(Robot& robot, Rviz& rviz, double dist);
+  void orientationFreeSampling(Robot& robot, int num_samples);
+  void sampleNearSolution(Robot& robot, Rviz& rviz, double dist, int n);
   void showTrajectory(Rviz& rviz);
   void readTaskFromYaml(const std::string filename);
   void readTask1(ros::NodeHandle& nh);
+  void reset();
 };
+
+void Demo1::reset()
+{
+  graph_data_.clear();
+  shortest_path_.clear();
+  last_path_cost_ = 0;
+}
 
 std::vector<TrajectoryPoint> createPath();
 
@@ -45,6 +53,148 @@ void showResults(std::vector<std::chrono::duration<double>>& times,
   {
     ROS_INFO_STREAM("time: " << times[i].count() << " cost: " << costs[i]);
   }
+}
+
+void run_case(Demo1& demo1, Robot& robot, Rviz& rviz, int num_samples, std::ofstream& file, int run_index)
+{
+
+  ROS_INFO_STREAM("Started running planning case 1");
+  // parameters
+  double reduction_factor = 2.0;
+  double initial_quat_dist = 0.25 * M_PI;  // same as free
+  int num_iterations = 4;  // including first run
+
+ 
+  std::vector<std::chrono::duration<double>> times;
+  std::vector<double> run_time;
+  std::vector<double> costs;
+
+
+  // first run without reduced tolerance
+  auto start = std::chrono::high_resolution_clock::now();
+  demo1.orientationFreeSampling(robot, num_samples);
+  demo1.calculateShortestPath(robot);
+  auto stop = std::chrono::high_resolution_clock::now();
+
+  times.push_back(stop - start);
+  costs.push_back(demo1.last_path_cost_);
+
+  double dist = initial_quat_dist;
+  for (int i = 0; i < num_iterations-1; ++i)
+  {
+    dist = dist / reduction_factor;
+    ROS_INFO_STREAM("Sampling iteration " << i << " with dist: " << dist);
+
+    start = std::chrono::high_resolution_clock::now();
+    demo1.sampleNearSolution(robot, rviz, dist, num_samples);
+    demo1.calculateShortestPath(robot);
+    stop = std::chrono::high_resolution_clock::now();
+
+    times.push_back(stop - start);
+    costs.push_back(demo1.last_path_cost_);
+
+    // demo1.showShortestPath(robot, rviz);
+    // rviz.clear();
+  }
+
+  // print results
+  for(std::size_t i=0; i < costs.size(); ++i)
+  {
+    file << run_index << ",";
+    file << i << ","; // iteration
+    file << num_samples << ",";
+    file << costs[i] << ",";
+    file << times[i].count();
+    file << std::endl;
+  }
+
+}
+
+void run_multiple_cases(Demo1& demo, Robot& robot, Rviz& rviz, std::vector<int> num_samples, int num_runs)
+{
+  std::string header = "run,iteration,samples,cost,time";
+  std::string filename = ros::package::getPath("arf_demo") + "/data/results_case_1.csv";
+
+  std::ofstream data_file;
+  data_file.open(filename);
+
+  if (data_file.is_open())
+  {
+    data_file << header << std::endl;
+  }
+  else
+  {
+    ROS_ERROR_STREAM("Failed to open file for data output.");
+  }
+  
+  for (int k=0; k < num_runs; ++k){
+    for (auto ns : num_samples)
+    {
+      demo.reset();
+      run_case(demo, robot, rviz, ns, data_file, k);
+    }
+  }
+
+  data_file.close();
+
+}
+
+void single_run(Demo1& demo1, Robot& robot, Rviz& rviz, int num_samples, std::ofstream& file, int run_index)
+{
+  ROS_INFO_STREAM("Started running single run, " << num_samples << " samples.");
+ 
+  std::vector<std::chrono::duration<double>> times;
+  std::vector<double> run_time;
+  std::vector<double> costs;
+
+
+  // first run without reduced tolerance
+  auto start = std::chrono::high_resolution_clock::now();
+  demo1.orientationFreeSampling(robot, num_samples);
+  demo1.calculateShortestPath(robot);
+  auto stop = std::chrono::high_resolution_clock::now();
+
+  times.push_back(stop - start);
+  costs.push_back(demo1.last_path_cost_);
+
+  // print results
+  for(std::size_t i=0; i < costs.size(); ++i)
+  {
+    file << run_index << ",";
+    file << num_samples << ",";
+    file << costs[i] << ",";
+    file << times[i].count();
+    file << std::endl;
+  }
+
+}
+
+void run_multiple_cases_single_run(Demo1& demo, Robot& robot, Rviz& rviz, std::vector<int> num_samples, int num_runs)
+{
+  std::string header = "run,samples,cost,time";
+  std::string filename = ros::package::getPath("arf_demo") + "/data/results_case_1_single_run.csv";
+
+  std::ofstream data_file;
+  data_file.open(filename);
+
+  if (data_file.is_open())
+  {
+    data_file << header << std::endl;
+  }
+  else
+  {
+    ROS_ERROR_STREAM("Failed to open file for data output.");
+  }
+  
+  for (int k=0; k < num_runs; ++k){
+    for (auto ns : num_samples)
+    {
+      demo.reset();
+      single_run(demo, robot, rviz, ns, data_file, k);
+    }
+  }
+
+  data_file.close();
 }
 
 int main(int argc, char** argv)
@@ -60,11 +210,6 @@ int main(int argc, char** argv)
 
   rviz.clear();
 
-  // task z-axis tolerance
-  // demo1.readTask1(node_handle);
-  // // demo1.createTrajectory();
-  // demo1.showTrajectory(rviz);
-  // demo1.createGraphData(robot, rviz);
 
   // task orientation free
   std::string filename =
@@ -72,40 +217,19 @@ int main(int argc, char** argv)
   demo1.readTaskFromYaml(filename);
   demo1.showTrajectory(rviz);
 
-  std::vector<std::chrono::duration<double>> times;
-  std::vector<double> costs;
-
-  auto start = std::chrono::high_resolution_clock::now();
-  demo1.orientationFreeSampling(robot);
-  demo1.calculateShortestPath(robot);
-  auto stop = std::chrono::high_resolution_clock::now();
-  times.push_back(stop - start);
-  costs.push_back(demo1.last_path_cost_);
-
-  demo1.showShortestPath(robot, rviz);
-
   std::vector<double> home = {0, -1.5, 1.5, 0, 0, 0};
   robot.plot(rviz.visual_tools_, home);
 
-  double dist = 0.2;
-  for (int i = 0; i < 3; ++i)
-  {
-    ROS_INFO_STREAM("Sampling iteration " << i);
 
-    start = std::chrono::high_resolution_clock::now();
-    demo1.sampleNearSolution(robot, rviz, dist);
-    demo1.calculateShortestPath(robot);
-    stop = std::chrono::high_resolution_clock::now();
-    times.push_back(stop - start);
-    costs.push_back(demo1.last_path_cost_);
+  std::vector<int> num_samples = {300, 600, 900};
+  run_multiple_cases(demo1, robot, rviz, num_samples, 10);
 
-    demo1.showShortestPath(robot, rviz);
-    rviz.clear();
+  // std::vector<int> num_samples = {300, 600, 900, 1200, 1800, 2500, 3000, 3600};
+  // run_multiple_cases_single_run(demo1, robot, rviz, num_samples, 10);
 
-    dist = dist / 2;
-  }
-
-  showResults(times, costs);
+  demo1.showShortestPath(robot, rviz);
+  rviz.clear();
+  demo1.showTrajectory(rviz);
 
   ros::shutdown();
 
@@ -272,14 +396,15 @@ void Demo1::createGraphData(Robot& robot, Rviz& rviz)
   }
 }
 
-void Demo1::orientationFreeSampling(Robot& robot)
+void Demo1::orientationFreeSampling(Robot& robot, int num_samples=500)
 {
   std::cout << "Trajectory length: " << ee_trajectory_2_.size() << std::endl;
+  graph_data_.clear();
 
   for (auto tp : ee_trajectory_2_)
   {
     std::vector<std::vector<double>> new_data;
-    for (auto pose : tp.sampleUniform(500))
+    for (auto pose : tp.sampleUniform(num_samples))
     {
       for (auto q_sol : robot.ik(pose))
       {
@@ -291,7 +416,7 @@ void Demo1::orientationFreeSampling(Robot& robot)
   }
 }
 
-void Demo1::sampleNearSolution(Robot& robot, Rviz& rviz, double dist)
+void Demo1::sampleNearSolution(Robot& robot, Rviz& rviz, double dist, int n=500)
 {
   if (shortest_path_.size() < 1)
   {
@@ -306,9 +431,9 @@ void Demo1::sampleNearSolution(Robot& robot, Rviz& rviz, double dist)
     ee_trajectory_2_[i].setNominalPose(nom_pose);
 
     std::vector<std::vector<double>> new_data;
-    for (auto pose : ee_trajectory_2_[i].sampleUniformNear(dist, 500))
+    for (auto pose : ee_trajectory_2_[i].sampleUniformNear(dist, n))
     {
-      rviz.plotPose(pose);
+      // rviz.plotPose(pose);
       for (auto q_sol : robot.ik(pose))
       {
         if (!robot.isInCollision(q_sol))
