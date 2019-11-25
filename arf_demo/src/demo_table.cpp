@@ -93,7 +93,7 @@ void run_case(Demo1& demo1, Robot& robot, Rviz& rviz, int num_samples, std::ofst
     costs.push_back(demo1.last_path_cost_);
 
     // demo1.showShortestPath(robot, rviz);
-    // rviz.clear();
+    rviz.clear();
   }
 
   // print results
@@ -217,19 +217,20 @@ int main(int argc, char** argv)
   std::vector<double> home = { 0, -1.5, 1.5, 0, 0, 0 };
   robot.plot(rviz.visual_tools_, home);
 
-  std::vector<int> num_samples = { 300, 600, 900 };
-  run_multiple_cases(demo1, robot, rviz, num_samples, 10);
+  // std::vector<int> num_samples = { 300, 600, 900 };
+  // run_multiple_cases(demo1, robot, rviz, num_samples, 10);
 
-  std::vector<int> num_samples_2 = { 300, 600, 900, 1200, 1800, 2500, 3000, 3600 };
-  run_multiple_cases_single_run(demo1, robot, rviz, num_samples_2, 10);
+  // std::vector<int> num_samples_2 = { 300, 600, 900, 1200, 1800, 2500, 3000, 3600 };
+  // run_multiple_cases_single_run(demo1, robot, rviz, num_samples_2, 10);
 
-  // std::ofstream ftest;
-  // ftest.open("test.csv");
+  std::ofstream ftest;
+  ftest.open("test.csv");
   // single_run(demo1, robot, rviz, 1000, ftest, 0);
+  run_case(demo1, robot, rviz, 600, ftest, 0);
 
-  demo1.showShortestPath(robot, rviz);
-  rviz.clear();
   demo1.showTrajectory(rviz);
+  demo1.showShortestPath(robot, rviz);
+  // rviz.clear();
 
   ros::shutdown();
 
@@ -429,7 +430,7 @@ void Demo1::sampleNearSolution(Robot& robot, Rviz& rviz, double dist, int n = 50
     std::vector<std::vector<double>> new_data;
     for (auto pose : ee_trajectory_2_[i].sampleUniformNear(dist, n))
     {
-      // rviz.plotPose(pose);
+      rviz.plotPose(pose);
       for (auto q_sol : robot.ik(pose))
       {
         if (!robot.isInCollision(q_sol))
