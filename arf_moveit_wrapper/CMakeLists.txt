@@ -22,7 +22,7 @@ catkin_package(
   INCLUDE_DIRS include
   LIBRARIES ${PROJECT_NAME}
   CATKIN_DEPENDS moveit_core moveit_ros_planning
-  DEPENDS EIGEN3 opw_kinematics::opw_kinematics
+  DEPENDS EIGEN3
 )
 
 ###########
@@ -44,7 +44,6 @@ add_library(
 
 target_link_libraries(${PROJECT_NAME}
   ${catkin_LIBRARIES}
-  opw_kinematics::opw_kinematics
 )
 
 # main node for quick testing purpose
