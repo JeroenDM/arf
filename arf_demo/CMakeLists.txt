@@ -19,13 +19,19 @@ find_package(catkin REQUIRED COMPONENTS
   trajectory_msgs
   geometry_msgs
   message_generation
+  nexon_msgs
 )
 
 # Let's try to use open-mp parallization if we can
-find_package(OpenMP)
-if (OPENMP_FOUND)
-  message(STATUS "ARF will use OpenMP")
-  set(OpenMP_FLAGS ${OpenMP_CXX_FLAGS})
+# find_package(OpenMP)
+# if (OPENMP_FOUND)
+#   message(STATUS "ARF will use OpenMP")
+#   set(OpenMP_FLAGS ${OpenMP_CXX_FLAGS})
+# endif()
+
+find_package(Eigen3 REQUIRED)
+if(NOT EIGEN3_INCLUDE_DIRS)
+  set(EIGEN3_INCLUDE_DIRS ${EIGEN3_INCLUDE_DIR})
 endif()
 
 add_service_files(
