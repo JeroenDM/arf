@@ -83,7 +83,7 @@ catkin_package(
 ## Specify additional locations of header files
 ## Your package locations should be listed before other locations
 include_directories(
-# include
+  include
   ${catkin_INCLUDE_DIRS}
 )
 
@@ -103,6 +103,7 @@ include_directories(
 add_executable(${PROJECT_NAME}_demo src/demo.cpp)
 add_executable(${PROJECT_NAME}_demo2 src/demo2.cpp)
 add_executable(${PROJECT_NAME}_demo_table src/demo_table.cpp)
+add_executable(${PROJECT_NAME}_server src/server.cpp)
 
 
 ## Rename C++ executable without prefix
@@ -112,6 +113,7 @@ add_executable(${PROJECT_NAME}_demo_table src/demo_table.cpp)
 set_target_properties(${PROJECT_NAME}_demo PROPERTIES OUTPUT_NAME demo PREFIX "")
 set_target_properties(${PROJECT_NAME}_demo2 PROPERTIES OUTPUT_NAME demo2 PREFIX "")
 set_target_properties(${PROJECT_NAME}_demo_table PROPERTIES OUTPUT_NAME demo_table PREFIX "")
+set_target_properties(${PROJECT_NAME}_server PROPERTIES OUTPUT_NAME server PREFIX "")
 
 ## Add cmake target dependencies of the executable
 ## same as for the library above
@@ -125,6 +127,9 @@ target_link_libraries(${PROJECT_NAME}_demo2
   ${catkin_LIBRARIES}
 )
 target_link_libraries(${PROJECT_NAME}_demo_table
+  ${catkin_LIBRARIES}
+)
+target_link_libraries(${PROJECT_NAME}_server
   ${catkin_LIBRARIES}
 )
 

@@ -75,6 +75,12 @@ bool RobotMoveitWrapper::isInCollision(const std::vector<double>& joint_pose) co
 
     kinematic_state_->setJointGroupPositions(joint_model_group_, joint_pose);
     in_collision = planning_scene_->isStateColliding(*kinematic_state_);
+    // ros::V_string links;
+    // planning_scene_->getCollidingLinks(links, *kinematic_state_);
+    // for (auto l : links)
+    // {
+    //     std::cout << l << "\n";
+    // }
   }
   return in_collision;
 }
@@ -107,7 +113,7 @@ const IKSolution RobotMoveitWrapper::ik(const Transform pose)
 
 
     // convert pose from tool_tip to tool0 frame
-    auto temp = getLinkFixedRelativeTransform("torch") * getLinkFixedRelativeTransform("tool_tip");
+    auto temp = getLinkFixedRelativeTransform("torch") * getLinkFixedRelativeTransform("torch_tip") * getLinkFixedRelativeTransform("tool_tip");
     Transform tool0_to_tool_tip(temp.matrix());
     tool0_to_tool_tip = tool0_to_tool_tip.inverse();
     Eigen::Isometry3d pose_temp;
