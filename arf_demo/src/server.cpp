@@ -34,6 +34,7 @@ arf::Trajectory createTrajectory(Eigen::Affine3d& start, Eigen::Affine3d& goal)
   // only do position interpolation for now
   Eigen::Vector3d diff = goal.translation() - start.translation();
   double step_size = diff.norm() / (num_pts - 1);
+  Eigen::Vector3d diff_unit = diff.normalized();
 
   std::vector<Eigen::Affine3d> poses;
   for (int i = 0; i < num_pts; ++i)
@@ -42,7 +43,7 @@ arf::Trajectory createTrajectory(Eigen::Affine3d& start, Eigen::Affine3d& goal)
     pose *= goal.rotation();
 
     pose.translation() =
-        start.translation() + static_cast<double>(i) * step_size * diff;
+        start.translation() + static_cast<double>(i) * step_size * diff_unit;
 
     // ROS_INFO_STREAM("Pose " << i);
     // ROS_INFO_STREAM(pose.translation() << pose.rotation());
@@ -87,7 +88,7 @@ std::vector<trajectory_msgs::JointTrajectoryPoint> jointPathToMsg(arf::JointPath
     pt.time_from_start = ros::Duration(time);
     time += dt;
 
-    ROS_INFO_STREAM("Created ros traj pt: " << pt);
+    // ROS_INFO_STREAM("Created ros traj pt: " << pt);
     ros_traj.push_back(pt);
   }
   return ros_traj;
@@ -126,7 +127,7 @@ public:
     Eigen::Affine3d goal_pose;
     tf::poseMsgToEigen(req.pose_goal, goal_pose);
 
-    ROS_INFO_STREAM("Start pose:\n" << start_pose.translation());
+    // ROS_INFO_STREAM("Start pose:\n" << start_pose.translation());
 
     auto traj = createTrajectory(start_pose, goal_pose);
     auto gd = arf::calculateValidJointPoses(robot_, traj, rviz_);
