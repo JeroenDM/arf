@@ -2,6 +2,7 @@
 #define _ARF_DEMO_PLANNING_H_
 
 #include <vector>
+#include <ros/ros.h>
 
 #include "arf_graph/graph.h"
 #include "arf_graph/util.h"  // enable std::cout << graph|node
@@ -12,6 +13,7 @@ namespace arf
 {
 
 bool DEBUG = false;
+// ros::param::get<bool>("/arf_debug_flag", DEBUG, false);
 
 // TODO move this to arf_trajectory
 using Trajectory = std::vector<TrajectoryPoint>;
@@ -38,6 +40,9 @@ GraphData calculateValidJointPoses(Robot& robot, Trajectory& traj, Rviz& rviz)
         if (!robot.isInCollision(q_sol))
         {
           new_data.push_back(q_sol);
+          if (DEBUG){
+            robot.plot(rviz.visual_tools_, q_sol);
+          }
         }
       }
     }
