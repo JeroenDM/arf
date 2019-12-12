@@ -10,6 +10,9 @@
 #include "arf_trajectory/trajectory.h"
 #include "arf_graph/graph.h"
 
+namespace arf
+{
+
 class Planner {
   std::vector<std::vector<std::vector<double>>> graph_data_;
   std::vector<TrajectoryPoint> ee_trajectory_;
@@ -30,5 +33,7 @@ public:
 
   bool run(RedundantRobot& robot, std::vector<TrajectoryPoint>& task);
 };
+
+} // namespace arf
 
 #endif

@@ -39,8 +39,9 @@ int main(int argc, char **argv)
     ros::NodeHandle node_handle;
     ros::AsyncSpinner spinner(1);
     spinner.start();
+    
 
-    RedundantRobot robot;
+    arf::RedundantRobot robot;
     Rviz rviz;
     rviz.clear();
 

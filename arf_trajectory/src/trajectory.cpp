@@ -3,6 +3,9 @@
 #include <cmath>
 #include <random>
 
+namespace arf
+{
+
 void TolerancedNumber::checkInput()
 {
     if (lower_bound_ >= upper_bound_)
@@ -164,3 +167,5 @@ void FreeOrientationPoint::plot(moveit_visual_tools::MoveItVisualToolsPtr mvt)
     mvt->publishAxis(nominal_pose_, rviz_visual_tools::LARGE);
     mvt->trigger();
 }
+
+} // namespace arf

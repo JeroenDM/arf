@@ -4,6 +4,9 @@
 #include <limits>
 #include <vector>
 
+namespace arf
+{
+
 const double INF = std::numeric_limits<double>::infinity();
 
 typedef std::vector<double> JointPose;
@@ -49,5 +52,7 @@ struct sortNodesFunction
 
 double L1NormCost(Node n1, Node n2);
 double sumSquaredCost(Node n1, Node n2);
+
+} // namespace arf
 
 #endif

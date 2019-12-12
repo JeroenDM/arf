@@ -14,6 +14,9 @@
 
 #include "util.h"
 
+namespace arf
+{
+
 class Demo1
 {
   std::vector<std::vector<std::vector<double>>> graph_data_;
@@ -197,6 +200,8 @@ void run_multiple_cases_single_run(Demo1& demo, Robot& robot, Rviz& rviz, std::v
   data_file.close();
 }
 
+} // namespace arf
+
 int main(int argc, char** argv)
 {
   ros::init(argc, argv, "demo_table");
@@ -204,9 +209,9 @@ int main(int argc, char** argv)
   ros::AsyncSpinner spinner(1);
   spinner.start();
 
-  Robot robot;
+  arf::Robot robot;
   Rviz rviz;
-  Demo1 demo1;
+  arf::Demo1 demo1;
 
   rviz.clear();
 
@@ -235,6 +240,9 @@ int main(int argc, char** argv)
 
   return 0;
 }
+
+namespace arf
+{
 
 TrajectoryPoint createPointFromParameters(ros::NodeHandle& nh,
                                           const std::string absolute_path)
@@ -469,3 +477,5 @@ void Demo1::showShortestPath(Robot& robot, Rviz& rviz)
     ros::Duration(0.5).sleep();
   }
 }
+
+} // namespace arf

@@ -5,7 +5,7 @@
 
 #include "arf_graph/graph.h"
 
-std::ostream& operator<<(std::ostream& os, const Node& n)
+std::ostream& operator<<(std::ostream& os, const arf::Node& n)
 {
     using namespace std;
     os << "(" << n.path_index << ", ";
@@ -30,7 +30,7 @@ std::ostream& operator<<(std::ostream& os, const Node& n)
     return os;
 }
 
-std::ostream& operator<<(std::ostream& os, const Graph& graph)
+std::ostream& operator<<(std::ostream& os, const arf::Graph& graph)
 {
     os << "-----------------------\n";
     os << "Graph\n";

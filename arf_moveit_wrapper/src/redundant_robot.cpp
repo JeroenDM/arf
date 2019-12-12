@@ -1,5 +1,8 @@
 #include "arf_moveit_wrapper/redundant_robot.h"
 
+namespace arf
+{
+
 void printGrid(std::vector<std::vector<double>>& grid)
 {
   if (grid.size() > 0)
@@ -95,3 +98,5 @@ IKSolution RedundantRobot::ikGridSamples(const Eigen::Affine3d& pose)
   }
   return all_ik_sols;
 }
+
+} // namespace arf

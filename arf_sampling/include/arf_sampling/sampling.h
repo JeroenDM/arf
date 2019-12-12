@@ -5,6 +5,9 @@
 #include <stdexcept>
 #include <vector>
 
+namespace arf
+{
+
 std::vector<double> range(double lower_bound, double upper_bound, int num_samples);
 
 class Sampler
@@ -21,5 +24,7 @@ class Sampler
     void addDimension(double lower_bound, double upper_bound, int num_samples);
     std::vector<std::vector<double>> getGridSamples();
 };
+
+} // namespace arf
 
 #endif

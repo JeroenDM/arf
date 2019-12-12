@@ -1,5 +1,8 @@
 #include "arf_sampling/sampling.h"
 
+namespace arf
+{
+
 std::vector<double> range(double lower_bound, double upper_bound, int num_samples)
 {
     std::vector<double> range;
@@ -61,3 +64,5 @@ std::vector<std::vector<double>> Sampler::getGridSamples()
 
     return grid;
 }
+
+} // namespace arf

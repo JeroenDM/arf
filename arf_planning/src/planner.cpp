@@ -1,5 +1,8 @@
 #include "arf_planning/planner.h"
 
+namespace arf
+{
+
 bool Planner::createGraphData(RedundantRobot& robot)
 {
   ROS_INFO_STREAM("Received trajectory of with points: " << ee_trajectory_.size());
@@ -65,3 +68,5 @@ bool Planner::run(RedundantRobot& robot, std::vector<TrajectoryPoint>& task)
   }
   return false;
 }
+
+} // namespace arf

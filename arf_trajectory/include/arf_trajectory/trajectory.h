@@ -9,6 +9,9 @@
 
 #include "arf_sampling/sampling.h"
 
+namespace arf
+{
+
 using Transform = Eigen::Isometry3d;
 using Quaternion = Eigen::Quaterniond;
 
@@ -124,5 +127,7 @@ public:
 
   Transform nominal_pose_;
 };
+
+} // namespace arf
 
 #endif

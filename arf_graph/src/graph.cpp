@@ -5,6 +5,9 @@
 #include <iostream>
 #include <queue>
 
+namespace arf
+{
+
 double L1NormCost(Node n1, Node n2)
 {
   double cost = 0;
@@ -172,3 +175,5 @@ std::vector<Node*> Graph::getShortestPath()
   }
   return path;
 }
+
+} // namespace arf

@@ -9,6 +9,9 @@
 
 #include "arf_sampling/sampling.h"
 
+namespace arf
+{
+
 class RedundantRobot : public RobotMoveitWrapper
 {
     Sampler sampler_;
@@ -18,5 +21,7 @@ class RedundantRobot : public RobotMoveitWrapper
     IKSolution redundantIk(const Eigen::Affine3d& pose, std::vector<double>& q_fixed);
     IKSolution ikGridSamples(const Eigen::Affine3d& pose);
 };
+
+} // namespace arf
 
 #endif

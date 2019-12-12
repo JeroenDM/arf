@@ -13,6 +13,9 @@
 #include <string>
 #include <vector>
 
+namespace arf
+{
+
 using Transform = Eigen::Isometry3d;
 
 template <typename T>
@@ -70,5 +73,7 @@ public:
 };
 
 class Robot : public RobotMoveitWrapper {};
+
+} // namespace arf
 
 #endif

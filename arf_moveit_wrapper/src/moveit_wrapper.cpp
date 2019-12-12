@@ -14,6 +14,9 @@
 #include <string>
 #include <vector>
 
+namespace arf
+{
+
 RobotMoveitWrapper::RobotMoveitWrapper()
 {
     // load robot model
@@ -174,3 +177,5 @@ void RobotMoveitWrapper::plot(moveit_visual_tools::MoveItVisualToolsPtr mvt, std
     mvt->publishRobotState(kinematic_state_, rvt::DEFAULT);
     mvt->trigger();
 }
+
+} // namespace arf
