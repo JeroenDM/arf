@@ -4,6 +4,8 @@
 #include <vector>
 #include <Eigen/Geometry>
 #include <memory>
+#include <numeric>
+#include <algorithm>
 
 #include <arf_sampling/sampling.h>
 
@@ -36,6 +38,12 @@ struct Bound
       return value - upper;
     else
       return 0.0;
+  }
+
+  double range() const
+  {
+    assert(lower <= upper);
+    return upper - lower;
   }
 };
 
@@ -90,7 +98,7 @@ public:
    *
    * This only implements grid sampling at the moment, so `n` is ignored.
    * */
-  std::vector<Transform> getSamples(const int n = 1);
+  std::vector<Transform> getSamples(const int n = 1) const;
 
   /** \brief Turn a six vector of position and euler angle values into an end-effector pose.
    *
@@ -105,11 +113,34 @@ public:
    * */
   Eigen::Vector6d poseToValues(const Transform& tf) const;
 
-  Eigen::Vector6d applyBounds(const Eigen::Vector6d& distance);
+  Eigen::Vector6d applyBounds(const Eigen::Vector6d& distance) const;
 
-  Eigen::Vector6d distanceVector(const Transform& tf)
+  Eigen::Vector6d distanceVector(const Transform& tf) const
   {
     return applyBounds(poseToValues(tf));
+  }
+
+  double distance(const Transform& tf) const
+  {
+    return distanceVector(tf).norm();
+  }
+
+  /** \brief Specific volume metric from the paper
+   *
+   * Position in meter and angles in randians are weighted equally by default.
+   * */
+  double volume(double angle_weight = 1.0)
+  {
+    double volume;
+    // position part
+    volume += bounds_[0].range();
+    volume += bounds_[1].range();
+    volume += bounds_[2].range();
+    // angular part
+    volume += angle_weight * bounds_[3].range();
+    volume += angle_weight * bounds_[4].range();
+    volume += angle_weight * bounds_[5].range();
+    return volume;
   }
 };
 }  // namespace arf

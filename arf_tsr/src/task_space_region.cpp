@@ -38,6 +38,9 @@ Eigen::Vector6d poseDistance(const Transform& tf_ref, const Transform& tf)
   return d;
 }
 
+/*********************
+ * Task Space Region
+ * *******************/
 TSR::TSR(Transform tf, std::array<Bound, 6> bounds, arf::SamplerPtr sampler, const std::vector<int>& num_samples)
   : tf_nominal_(tf), bounds_(bounds), sampler_(sampler)
 {
@@ -49,7 +52,7 @@ TSR::TSR(Transform tf, std::array<Bound, 6> bounds, arf::SamplerPtr sampler, con
   sampler_->addDimension(bounds_[5].lower, bounds_[5].upper, num_samples[5]);
 }
 
-std::vector<Transform> TSR::getSamples(const int n)
+std::vector<Transform> TSR::getSamples(const int n) const
 {
   std::vector<Transform> samples;
   auto tsr_samples = sampler_->getGridSamples();
@@ -93,7 +96,7 @@ Eigen::Vector6d TSR::poseToValues(const Transform& tf) const
   return values;
 }
 
-Eigen::Vector6d TSR::applyBounds(const Eigen::Vector6d& values)
+Eigen::Vector6d TSR::applyBounds(const Eigen::Vector6d& values) const
 {
   Eigen::Vector6d distance;
   for (std::size_t i{ 0 }; i < 6; ++i)

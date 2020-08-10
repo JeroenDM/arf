@@ -38,6 +38,23 @@ TEST(TestConstructor, TestPositionSamples)
   comparePoses(samples[2], tf_3);
 }
 
+TEST(TestConstructor, TestVolume)
+{
+  EXPECT_TRUE(true);
+
+  // create all the input for the constructor
+  auto tf = Eigen::Isometry3d::Identity();
+  TSRBounds tsr_bounds{ { { -1, 1 }, { 0, 0.3 }, { 0, 0 }, { 0, 0 }, { 0, 0 }, { 0, 1 } } };
+  SamplerPtr sampler = std::make_shared<Sampler>();
+  std::vector<int> num_samples = { 3, 2, 1, 1, 1, 2 };
+
+  TSR tsr(tf, tsr_bounds, sampler, num_samples);
+
+  EXPECT_DOUBLE_EQ(tsr.volume(), 3.3);
+  // multiply the angular part by 2
+  EXPECT_DOUBLE_EQ(tsr.volume(2.0), 4.3);
+}
+
 TEST(TestConstructor, TestRotationSamples)
 {
   EXPECT_TRUE(true);
