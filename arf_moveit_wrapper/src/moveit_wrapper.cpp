@@ -51,7 +51,7 @@ void RobotMoveitWrapper::updatePlanningScene()
  * as a child link.
  * @param frame The name of the frame to get the relative pose for.
  */
-const Eigen::Affine3d RobotMoveitWrapper::getLinkFixedRelativeTransform(const std::string& frame) const
+const Eigen::Isometry3d RobotMoveitWrapper::getLinkFixedRelativeTransform(const std::string& frame) const
 {
   return kinematic_model_->getLinkModel(frame)->getJointOriginTransform();
 }
@@ -97,7 +97,7 @@ bool RobotMoveitWrapper::isInCollision(const std::vector<double>& joint_pose) co
  * @param q The joint values for which fk is calculated.
  * @param frame The name of the frame of which the pose is calculated.
  */
-const Eigen::Affine3d RobotMoveitWrapper::fk(const std::vector<double>& q, const std::string& frame) const
+const Eigen::Isometry3d RobotMoveitWrapper::fk(const std::vector<double>& q, const std::string& frame) const
 {
   kinematic_state_->setJointGroupPositions(joint_model_group_, q);
   return kinematic_state_->getGlobalLinkTransform(frame);

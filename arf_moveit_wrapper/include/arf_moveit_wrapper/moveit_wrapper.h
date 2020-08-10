@@ -66,10 +66,10 @@ public:
   void updatePlanningScene();
   bool isInJointLimits(const std::vector<double>& q) const;
   bool isInCollision(const std::vector<double>& joint_pose) const;
-  const Eigen::Affine3d fk(const std::vector<double>& q, const std::string& frame = "tool0") const;
+  const Eigen::Isometry3d fk(const std::vector<double>& q, const std::string& frame = "tool0") const;
   virtual const IKSolution ik(const Transform pose);
 
-  const Eigen::Affine3d getLinkFixedRelativeTransform(const std::string& name) const;
+  const Eigen::Isometry3d getLinkFixedRelativeTransform(const std::string& name) const;
 
   // print info functions
   void printCurrentJointValues() const;
