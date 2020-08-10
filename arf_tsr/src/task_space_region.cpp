@@ -29,15 +29,24 @@ Eigen::Vector3d minNormEquivalent(const Eigen::Vector3d& angles)
   return m.row(index);
 }
 
-TSR::TSR(Transform tf, TSRBounds bounds, arf::SamplerPtr sampler, const std::vector<int>& num_samples)
+Eigen::Vector6d poseDistance(const Transform& tf_ref, const Transform& tf)
+{
+  const Transform tf_diff = tf_ref.inverse() * tf;
+  Eigen::Vector3d angles = minNormEquivalent(tf_diff.rotation().eulerAngles(0, 1, 2));
+  Eigen::Vector6d d;
+  d << tf_diff.translation(), angles;
+  return d;
+}
+
+TSR::TSR(Transform tf, std::array<Bound, 6> bounds, arf::SamplerPtr sampler, const std::vector<int>& num_samples)
   : tf_nominal_(tf), bounds_(bounds), sampler_(sampler)
 {
-  sampler_->addDimension(bounds.x.lower, bounds.x.upper, num_samples[0]);
-  sampler_->addDimension(bounds.y.lower, bounds.y.upper, num_samples[1]);
-  sampler_->addDimension(bounds.z.lower, bounds.z.upper, num_samples[2]);
-  sampler_->addDimension(bounds.rx.lower, bounds.rx.upper, num_samples[3]);
-  sampler_->addDimension(bounds.ry.lower, bounds.ry.upper, num_samples[4]);
-  sampler_->addDimension(bounds.rz.lower, bounds.rz.upper, num_samples[5]);
+  sampler_->addDimension(bounds_[0].lower, bounds_[0].upper, num_samples[0]);
+  sampler_->addDimension(bounds_[1].lower, bounds_[1].upper, num_samples[1]);
+  sampler_->addDimension(bounds_[2].lower, bounds_[2].upper, num_samples[2]);
+  sampler_->addDimension(bounds_[3].lower, bounds_[3].upper, num_samples[3]);
+  sampler_->addDimension(bounds_[4].lower, bounds_[4].upper, num_samples[4]);
+  sampler_->addDimension(bounds_[5].lower, bounds_[5].upper, num_samples[5]);
 }
 
 std::vector<Transform> TSR::getSamples(const int n)
@@ -46,12 +55,13 @@ std::vector<Transform> TSR::getSamples(const int n)
   auto tsr_samples = sampler_->getGridSamples();
   for (auto& tsr_sample : tsr_samples)
   {
-    samples.push_back(valuesToPose(tsr_sample));
+    Eigen::Vector6d v(tsr_sample.data());
+    samples.push_back(valuesToPose(v));
   }
   return samples;
 }
 
-Transform TSR::valuesToPose(std::vector<double>& values)
+Transform TSR::valuesToPose(const Eigen::Vector6d& values) const
 {
   using Translation = Eigen::Translation3d;
   using AngleAxis = Eigen::AngleAxisd;
@@ -64,7 +74,33 @@ Transform TSR::valuesToPose(std::vector<double>& values)
           AngleAxis(values[4], Vector::UnitY()) *
           AngleAxis(values[5], Vector::UnitZ());
   // clang-format on
+
+  // the values are expressed in the nominal tsr frame,
+  // convert them to the world frame
   return tf_nominal_ * t;
+}
+
+Eigen::Vector6d TSR::poseToValues(const Transform& tf) const
+{
+  // values are calculated in nominal frame of this tsr
+  Eigen::Isometry3d tf_diff = tf_nominal_.inverse() * tf;
+  // Eigen documentation:
+  //    The returned angles are in the ranges [0:pi]x[-pi:pi]x[-pi:pi].
+  Eigen::Vector3d angles = tf_diff.rotation().eulerAngles(0, 1, 2);
+
+  Eigen::Vector6d values;
+  values << tf_diff.translation(), angles;
+  return values;
+}
+
+Eigen::Vector6d TSR::applyBounds(const Eigen::Vector6d& values)
+{
+  Eigen::Vector6d distance;
+  for (std::size_t i{ 0 }; i < 6; ++i)
+  {
+    distance[i] = bounds_[i].distance(values[i]);
+  }
+  return distance;
 }
 
 }  // namespace arf

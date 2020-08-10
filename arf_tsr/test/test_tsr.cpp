@@ -17,13 +17,7 @@ TEST(TestConstructor, TestPositionSamples)
 
   // create all the input for the constructor
   auto tf = Eigen::Isometry3d::Identity();
-  TSRBounds tsr_bounds;
-  tsr_bounds.x = { -1, 1 };
-  tsr_bounds.y = { 0, 0 };
-  tsr_bounds.z = { 0, 0 };
-  tsr_bounds.rx = { 0, 0 };
-  tsr_bounds.ry = { 0, 0 };
-  tsr_bounds.rz = { 0, 0 };
+  TSRBounds tsr_bounds{ { { -1, 1 }, { 0, 0 }, { 0, 0 }, { 0, 0 }, { 0, 0 }, { 0, 0 } } };
   SamplerPtr sampler = std::make_shared<Sampler>();
   std::vector<int> num_samples = { 3, 1, 1, 1, 1, 1 };
 
@@ -50,13 +44,7 @@ TEST(TestConstructor, TestRotationSamples)
 
   // create all the input for the constructor
   auto tf = Eigen::Isometry3d::Identity();
-  TSRBounds tsr_bounds;
-  tsr_bounds.x = { 0, 0 };
-  tsr_bounds.y = { 0, 0 };
-  tsr_bounds.z = { 0, 0 };
-  tsr_bounds.rx = { -1, 1 };
-  tsr_bounds.ry = { 0, 0 };
-  tsr_bounds.rz = { 0, 0 };
+  TSRBounds tsr_bounds{ { { 0, 0 }, { 0, 0 }, { 0, 0 }, { -1, 1 }, { 0, 0 }, { 0, 0 } } };
   SamplerPtr sampler = std::make_shared<Sampler>();
   std::vector<int> num_samples = { 1, 1, 1, 3, 1, 1 };
 
@@ -83,13 +71,7 @@ TEST(TestConstructor, TestPosAndRotSamples)
 
   // create all the input for the constructor
   auto tf = Eigen::Isometry3d::Identity();
-  TSRBounds tsr_bounds;
-  tsr_bounds.x = { -1, 1 };
-  tsr_bounds.y = { 0, 0 };
-  tsr_bounds.z = { 0, 0 };
-  tsr_bounds.rx = { -1, 1 };
-  tsr_bounds.ry = { 0, 0 };
-  tsr_bounds.rz = { 0, 0 };
+  TSRBounds tsr_bounds{ { { -1, 1 }, { 0, 0 }, { 0, 0 }, { -1, 1 }, { 0, 0 }, { 0, 0 } } };
   SamplerPtr sampler = std::make_shared<Sampler>();
   std::vector<int> num_samples = { 3, 1, 1, 2, 1, 1 };
 
@@ -129,17 +111,44 @@ TEST(TestConstructor, TestPosAndRotSamples)
   comparePoses(samples[5], tf_6);
 }
 
+TEST(TestConversions, TestValuesAndPose)
+{
+  // create all the input for the constructor
+  auto tf = Eigen::Isometry3d::Identity();
+  TSRBounds tsr_bounds{ { { -1, 1 }, { 0, 0 }, { 0, 0 }, { -1, 1 }, { 0, 0 }, { 0, 0 } } };
+  SamplerPtr sampler = std::make_shared<Sampler>();
+  std::vector<int> num_samples = { 3, 1, 1, 2, 1, 1 };
+
+  // create the task space region
+  TSR tsr(tf, tsr_bounds, sampler, num_samples);
+
+  Eigen::Vector6d v;
+  v << -0.1, -0.2, -0.3, 0.1, 0.2, 0.3;
+  auto tf_v = tsr.valuesToPose(v);
+  auto new_v = tsr.poseToValues(tf_v);
+
+  for (std::size_t i{ 0 }; i < v.size(); ++i)
+  {
+    EXPECT_NEAR(v[i], new_v[i], TOLERANCE) << "Values not equal at dimension " << i;
+  }
+
+  // v = { -0.1, -0.2, -0.3, -0.1, 0.2, 0.3 };
+  // tf_v = tsr.valuesToPose(v);
+  // new_v = tsr.poseToValues(tf_v);
+
+  // for (std::size_t i{ 0 }; i < v.size(); ++i)
+  // {
+  //   EXPECT_NEAR(v.at(i), new_v.at(i), TOLERANCE) << "Values not equal at dimension " << i;
+  // }
+
+  // std::cout << tsr.ep_ << std::endl;
+}
+
 TEST(TestEulerStuff, Stuff)
 {
   // create all the input for the constructor
   auto tf = Eigen::Isometry3d::Identity();
-  TSRBounds tsr_bounds;
-  tsr_bounds.x = { -1, 1 };
-  tsr_bounds.y = { 0, 0 };
-  tsr_bounds.z = { 0, 0 };
-  tsr_bounds.rx = { -1, 1 };
-  tsr_bounds.ry = { 0, 0 };
-  tsr_bounds.rz = { 0, 0 };
+  TSRBounds tsr_bounds{ { { -1, 1 }, { 0, 0 }, { 0, 0 }, { -1, 1 }, { 0, 0 }, { 0, 0 } } };
   SamplerPtr sampler = std::make_shared<Sampler>();
   std::vector<int> num_samples = { 3, 1, 1, 2, 1, 1 };
 
@@ -164,9 +173,31 @@ TEST(TestEulerStuff, Stuff)
   EXPECT_NEAR(expected2[1], res2[1], TOLERANCE);
   EXPECT_NEAR(expected2[2], res2[2], TOLERANCE);
 
-  auto tf2_before = tsr.valuesToPose({ 0, 0, 0, a2.x(), a2.y(), a2.z() });
-  auto tf2_after = tsr.valuesToPose({ 0, 0, 0, res2.x(), res2.y(), res2.z() });
+  Eigen::Vector6d v_before, v_after;
+  v_before << 0, 0, 0, a2;
+  v_after << 0, 0, 0, res2;
+  auto tf2_before = tsr.valuesToPose(v_before);
+  auto tf2_after = tsr.valuesToPose(v_after);
   comparePoses(tf2_before, tf2_after);
+}
+
+TEST(TestMath, TestPoseDistanceSimple)
+{
+  auto tf = Eigen::Isometry3d::Identity();
+  tf.translation() << 1, 2, 3;
+
+  auto tf2 = Eigen::Isometry3d::Identity();
+  tf2.translation() << 1, 2, 3.987;
+  tf2 *= Eigen::AngleAxisd(1.123, Eigen::Vector3d::UnitX());
+
+  auto d = poseDistance(tf, tf2);
+  EXPECT_DOUBLE_EQ(d[0], 0.0);
+  EXPECT_DOUBLE_EQ(d[1], 0.0);
+  EXPECT_DOUBLE_EQ(d[2], 0.987);
+
+  EXPECT_DOUBLE_EQ(d[3], 1.123);
+  EXPECT_DOUBLE_EQ(d[4], 0.0);
+  EXPECT_DOUBLE_EQ(d[5], 0.0);
 }
 
 int main(int argc, char** argv)
