@@ -7,7 +7,7 @@
 #include <numeric>
 #include <algorithm>
 
-#include <arf_sampling/sampling.h>
+#include <arf_sampling/sampler.h>
 
 namespace Eigen
 {
@@ -94,10 +94,7 @@ public:
   TSR(Transform tf, std::array<Bound, 6> bounds, arf::SamplerPtr sampler, const std::vector<int>& num_samples);
   ~TSR() = default;
 
-  /** \brief sample poses from within the task space regions.
-   *
-   * This only implements grid sampling at the moment, so `n` is ignored.
-   * */
+  /** \brief sample poses from within the task space regions. * */
   std::vector<Transform> getSamples(const int n = 1) const;
 
   /** \brief Turn a six vector of position and euler angle values into an end-effector pose.

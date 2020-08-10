@@ -7,21 +7,20 @@
 #include <string>
 #include <vector>
 
-#include "arf_sampling/sampling.h"
+#include "arf_sampling/grid_sampler.h"
 
 namespace arf
 {
-
 class RedundantRobot : public RobotMoveitWrapper
 {
-    Sampler sampler_;
+  GridSampler sampler_;
 
-    public:
-    RedundantRobot();
-    IKSolution redundantIk(const Eigen::Affine3d& pose, std::vector<double>& q_fixed);
-    IKSolution ikGridSamples(const Eigen::Affine3d& pose);
+public:
+  RedundantRobot();
+  IKSolution redundantIk(const Eigen::Affine3d& pose, std::vector<double>& q_fixed);
+  IKSolution ikGridSamples(const Eigen::Affine3d& pose);
 };
 
-} // namespace arf
+}  // namespace arf
 
 #endif

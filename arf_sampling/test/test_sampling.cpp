@@ -1,4 +1,4 @@
-#include "arf_sampling/sampling.h"
+#include "arf_sampling/grid_sampler.h"
 
 #include <gtest/gtest.h>
 #include <iostream>
@@ -11,14 +11,14 @@ using namespace arf;
 void printGrid(Grid& grid);
 void compareGrids(Grid& actual, Grid& expected);
 
-TEST(TestSampler, addDimensions)
+TEST(TestGridSampler, addDimensions)
 {
-  Sampler s;
+  GridSampler s;
   s.addDimension(0, 0, 1);
   s.addDimension(1, 2, 2);
   s.addDimension(99, 99, 1);
   s.addDimension(5, 7, 3);
-  Grid grid = s.getGridSamples();
+  Grid grid = s.getSamples();
   Grid expected = {
     { 0, 1, 99, 5 }, { 0, 1, 99, 6 }, { 0, 1, 99, 7 }, { 0, 2, 99, 5 }, { 0, 2, 99, 6 }, { 0, 2, 99, 7 }
   };
@@ -29,9 +29,9 @@ TEST(TestSampler, addDimensions)
   EXPECT_TRUE(true);
 }
 
-TEST(TestSampler, range)
+TEST(TestGridSampler, range)
 {
-  std::vector<double> r = range(-1, 2, 4);
+  std::vector<double> r = arf::GridSampler::range(-1, 2, 4);
   ASSERT_EQ(r.size(), 4);
   EXPECT_DOUBLE_EQ(r[0], -1);
   EXPECT_DOUBLE_EQ(r[1], 0);
@@ -41,7 +41,7 @@ TEST(TestSampler, range)
 
 TEST(TestSampler, wrongInput)
 {
-  Sampler s;
+  GridSampler s;
   EXPECT_ANY_THROW(s.addDimension(-1, 2, 1));
 }
 

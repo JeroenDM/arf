@@ -1,8 +1,11 @@
-#include "arf_sampling/sampling.h"
+#include "arf_sampling/grid_sampler.h"
+
+#include <stdexcept>
+#include <vector>
 
 namespace arf
 {
-std::vector<double> range(double lower_bound, double upper_bound, int num_samples)
+std::vector<double> GridSampler::range(double lower_bound, double upper_bound, int num_samples)
 {
   std::vector<double> range;
   if (num_samples == 1)
@@ -21,7 +24,8 @@ std::vector<double> range(double lower_bound, double upper_bound, int num_sample
   return range;
 }
 
-void Sampler::recursiveGridSampling(int index, std::vector<double> prev_values, std::vector<std::vector<double>>& grid)
+void GridSampler::recursiveGridSampling(int index, std::vector<double> prev_values,
+                                        std::vector<std::vector<double>>& grid)
 {
   auto sample_range = range(lower_bounds_[index], upper_bounds_[index], num_samples_[index]);
   if (index < (dimensions_ - 1))
@@ -45,17 +49,7 @@ void Sampler::recursiveGridSampling(int index, std::vector<double> prev_values, 
   }
 }
 
-void Sampler::addDimension(double lower_bound, double upper_bound, int num_samples)
-{
-  if (num_samples == 1 and lower_bound != upper_bound)
-    throw std::invalid_argument("Lower bound should equal upper bound if number of samples is 1.");
-  dimensions_ += 1;
-  lower_bounds_.push_back(lower_bound);
-  upper_bounds_.push_back(upper_bound);
-  num_samples_.push_back(num_samples);
-}
-
-std::vector<std::vector<double>> Sampler::getGridSamples()
+std::vector<std::vector<double>> GridSampler::getSamples(const int /* n */)
 {
   std::vector<std::vector<double>> grid;
   std::vector<double> empty_vector;
@@ -64,4 +58,16 @@ std::vector<std::vector<double>> Sampler::getGridSamples()
   return grid;
 }
 
+void GridSampler::addDimension(double lower_bound, double upper_bound)
+{
+  throw std::runtime_error("You should supply a number of samples for dimensions when creating grid samplers.");
+}
+
+void GridSampler::addDimension(double lower_bound, double upper_bound, int num_samples)
+{
+  Sampler::addDimension(lower_bound, upper_bound);
+  if (num_samples == 1 and lower_bound != upper_bound)
+    throw std::invalid_argument("Lower bound should equal upper bound if number of samples is 1.");
+  num_samples_.push_back(num_samples);
+}
 }  // namespace arf

@@ -7,11 +7,10 @@
 #include <Eigen/Dense>
 #include <moveit_visual_tools/moveit_visual_tools.h>
 
-#include "arf_sampling/sampling.h"
+#include "arf_sampling/grid_sampler.h"
 
 namespace arf
 {
-
 using Transform = Eigen::Isometry3d;
 using Quaternion = Eigen::Quaterniond;
 
@@ -77,7 +76,7 @@ class TrajectoryPoint
 {
   std::array<Number*, 6> raw_numbers_; /* x, y, z, rx, ry, rz */
   Transform nominal_pose_;
-  Sampler sampler_;
+  GridSampler sampler_;
   double time_from_previous_point_;
 
   Transform valuesToPose(std::vector<double>& values);
@@ -104,7 +103,7 @@ class FreeOrientationPoint
 {
   std::array<Number*, 3> raw_numbers_; /* x, y, z */
 
-  Sampler sampler_;
+  GridSampler sampler_;
   double time_from_previous_point_;
 
   Transform valuesToPose(std::vector<double>& values);
@@ -128,6 +127,6 @@ public:
   Transform nominal_pose_;
 };
 
-} // namespace arf
+}  // namespace arf
 
 #endif

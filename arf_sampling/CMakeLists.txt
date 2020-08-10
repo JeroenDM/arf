@@ -23,7 +23,10 @@ include_directories(
 
 add_library(
   ${PROJECT_NAME}
-  src/sampling.cpp
+  src/sampler.cpp
+  src/grid_sampler.cpp
+  src/halton_sampler.cpp
+  src/random_sampler.cpp
 )
 
 target_link_libraries(

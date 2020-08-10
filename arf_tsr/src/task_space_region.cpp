@@ -4,7 +4,7 @@
 #include <Eigen/Geometry>
 #include <memory>
 
-#include <arf_sampling/sampling.h>
+#include <arf_sampling/sampler.h>
 
 namespace arf
 {
@@ -55,7 +55,7 @@ TSR::TSR(Transform tf, std::array<Bound, 6> bounds, arf::SamplerPtr sampler, con
 std::vector<Transform> TSR::getSamples(const int n) const
 {
   std::vector<Transform> samples;
-  auto tsr_samples = sampler_->getGridSamples();
+  auto tsr_samples = sampler_->getSamples(n);
   for (auto& tsr_sample : tsr_samples)
   {
     Eigen::Vector6d v(tsr_sample.data());

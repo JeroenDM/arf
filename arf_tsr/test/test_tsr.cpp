@@ -1,5 +1,5 @@
 #include <arf_tsr/task_space_region.h>
-#include <arf_sampling/sampling.h>
+#include <arf_sampling/grid_sampler.h>
 
 #include <Eigen/Geometry>
 
@@ -18,7 +18,7 @@ TEST(TestConstructor, TestPositionSamples)
   // create all the input for the constructor
   auto tf = Eigen::Isometry3d::Identity();
   TSRBounds tsr_bounds{ { { -1, 1 }, { 0, 0 }, { 0, 0 }, { 0, 0 }, { 0, 0 }, { 0, 0 } } };
-  SamplerPtr sampler = std::make_shared<Sampler>();
+  SamplerPtr sampler = std::make_shared<GridSampler>();
   std::vector<int> num_samples = { 3, 1, 1, 1, 1, 1 };
 
   TSR tsr(tf, tsr_bounds, sampler, num_samples);
@@ -45,7 +45,7 @@ TEST(TestConstructor, TestVolume)
   // create all the input for the constructor
   auto tf = Eigen::Isometry3d::Identity();
   TSRBounds tsr_bounds{ { { -1, 1 }, { 0, 0.3 }, { 0, 0 }, { 0, 0 }, { 0, 0 }, { 0, 1 } } };
-  SamplerPtr sampler = std::make_shared<Sampler>();
+  SamplerPtr sampler = std::make_shared<GridSampler>();
   std::vector<int> num_samples = { 3, 2, 1, 1, 1, 2 };
 
   TSR tsr(tf, tsr_bounds, sampler, num_samples);
@@ -62,7 +62,7 @@ TEST(TestConstructor, TestRotationSamples)
   // create all the input for the constructor
   auto tf = Eigen::Isometry3d::Identity();
   TSRBounds tsr_bounds{ { { 0, 0 }, { 0, 0 }, { 0, 0 }, { -1, 1 }, { 0, 0 }, { 0, 0 } } };
-  SamplerPtr sampler = std::make_shared<Sampler>();
+  SamplerPtr sampler = std::make_shared<GridSampler>();
   std::vector<int> num_samples = { 1, 1, 1, 3, 1, 1 };
 
   TSR tsr(tf, tsr_bounds, sampler, num_samples);
@@ -89,7 +89,7 @@ TEST(TestConstructor, TestPosAndRotSamples)
   // create all the input for the constructor
   auto tf = Eigen::Isometry3d::Identity();
   TSRBounds tsr_bounds{ { { -1, 1 }, { 0, 0 }, { 0, 0 }, { -1, 1 }, { 0, 0 }, { 0, 0 } } };
-  SamplerPtr sampler = std::make_shared<Sampler>();
+  SamplerPtr sampler = std::make_shared<GridSampler>();
   std::vector<int> num_samples = { 3, 1, 1, 2, 1, 1 };
 
   TSR tsr(tf, tsr_bounds, sampler, num_samples);
@@ -133,7 +133,7 @@ TEST(TestConversions, TestValuesAndPose)
   // create all the input for the constructor
   auto tf = Eigen::Isometry3d::Identity();
   TSRBounds tsr_bounds{ { { -1, 1 }, { 0, 0 }, { 0, 0 }, { -1, 1 }, { 0, 0 }, { 0, 0 } } };
-  SamplerPtr sampler = std::make_shared<Sampler>();
+  SamplerPtr sampler = std::make_shared<GridSampler>();
   std::vector<int> num_samples = { 3, 1, 1, 2, 1, 1 };
 
   // create the task space region
@@ -166,7 +166,7 @@ TEST(TestEulerStuff, Stuff)
   // create all the input for the constructor
   auto tf = Eigen::Isometry3d::Identity();
   TSRBounds tsr_bounds{ { { -1, 1 }, { 0, 0 }, { 0, 0 }, { -1, 1 }, { 0, 0 }, { 0, 0 } } };
-  SamplerPtr sampler = std::make_shared<Sampler>();
+  SamplerPtr sampler = std::make_shared<GridSampler>();
   std::vector<int> num_samples = { 3, 1, 1, 2, 1, 1 };
 
   // create the task space region
