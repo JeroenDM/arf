@@ -2,6 +2,8 @@
 
 #include <gtest/gtest.h>
 
+using namespace arf;
+
 std::vector<TrajectoryPoint> createTrajectory()
 {
   std::vector<TrajectoryPoint> ee_trajectory;
@@ -17,13 +19,13 @@ std::vector<TrajectoryPoint> createTrajectory()
   return ee_trajectory;
 }
 
-TEST(planner, constructor)
+TEST(TestPlanner, constructor)
 {
   Planner planner;
   EXPECT_TRUE(true);
 }
 
-TEST(planner, setTrajectory)
+TEST(TestPlanner, setTrajectory)
 {
   std::vector<TrajectoryPoint> trajectory = createTrajectory();
   Planner planner;
@@ -31,7 +33,7 @@ TEST(planner, setTrajectory)
   EXPECT_TRUE(true);
 }
 
-int main(int argc, char **argv)
+int main(int argc, char** argv)
 {
   testing::InitGoogleTest(&argc, argv);
   return RUN_ALL_TESTS();
