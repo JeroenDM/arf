@@ -12,6 +12,7 @@
 #include <Eigen/Dense>
 #include <string>
 #include <vector>
+#include <memory>
 
 namespace arf
 {
@@ -76,7 +77,17 @@ public:
   void printJointFixedRelativeTransforms() const;
 
   void plot(moveit_visual_tools::MoveItVisualToolsPtr mvt, std::vector<double>& joint_pose);
+
+  std::vector<double> getRandomPosition()
+  {
+    kinematic_state_->setToRandomPositions();
+    std::vector<double> joint_values;
+    kinematic_state_->copyJointGroupPositions(joint_model_group_, joint_values);
+    return joint_values;
+  }
 };
+
+typedef std::shared_ptr<RobotMoveitWrapper> RobotMoveitWrapperPtr;
 
 class Robot : public RobotMoveitWrapper
 {

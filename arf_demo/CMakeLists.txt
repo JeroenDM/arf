@@ -12,6 +12,7 @@ find_package(catkin REQUIRED COMPONENTS
   arf_moveit_wrapper 
   arf_graph
   arf_trajectory
+  arf_tsr
   moveit_visual_tools
   arf_planning
   moveit_ros_planning_interface
@@ -109,6 +110,7 @@ include_directories(
 add_executable(${PROJECT_NAME}_demo src/demo.cpp)
 # add_executable(${PROJECT_NAME}_demo2 src/demo2.cpp)
 add_executable(${PROJECT_NAME}_demo_table src/demo_table.cpp)
+add_executable(${PROJECT_NAME}_sampling_comparison src/sampling_comparison.cpp)
 
 
 ## Rename C++ executable without prefix
@@ -118,6 +120,7 @@ add_executable(${PROJECT_NAME}_demo_table src/demo_table.cpp)
 set_target_properties(${PROJECT_NAME}_demo PROPERTIES OUTPUT_NAME demo PREFIX "")
 # set_target_properties(${PROJECT_NAME}_demo2 PROPERTIES OUTPUT_NAME demo2 PREFIX "")
 set_target_properties(${PROJECT_NAME}_demo_table PROPERTIES OUTPUT_NAME demo_table PREFIX "")
+set_target_properties(${PROJECT_NAME}_sampling_comparison PROPERTIES OUTPUT_NAME sampling_comparison PREFIX "")
 
 ## Add cmake target dependencies of the executable
 ## same as for the library above
@@ -131,6 +134,9 @@ target_link_libraries(${PROJECT_NAME}_demo
 #   ${catkin_LIBRARIES}
 # )
 target_link_libraries(${PROJECT_NAME}_demo_table
+  ${catkin_LIBRARIES}
+)
+target_link_libraries(${PROJECT_NAME}_sampling_comparison
   ${catkin_LIBRARIES}
 )
 
