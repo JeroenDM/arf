@@ -46,6 +46,15 @@ protected:
   robot_state::RobotStatePtr kinematic_state_;            /**< Kinematic state of the robot */
   const robot_state::JointModelGroup* joint_model_group_; /**< Pointer to planning group */
 
+  /** \brief Keep the robot model loader alive as long as this class exist,
+   * because it should exist as long the the kinematic_model_ exists.
+   *
+   * Otherwise: SEVERE WARNING!!! Attempting to unload library while objects created by this loader exist in the heap!
+   * You should delete your objects before attempting to unload the library or destroying the ClassLoader. The library
+   * will NOT be unloaded.
+   * */
+  robot_model_loader::RobotModelLoaderPtr robot_model_loader_;
+
   planning_scene::PlanningScenePtr planning_scene_; /**< Pointer to planning scene with collision objects */
   planning_scene_monitor::PlanningSceneMonitorPtr planning_scene_monitor_;
   bool check_collisions_ = true;

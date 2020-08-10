@@ -19,8 +19,8 @@ namespace arf
 RobotMoveitWrapper::RobotMoveitWrapper()
 {
   // load robot model
-  robot_model_loader::RobotModelLoader robot_model_loader("robot_description");
-  kinematic_model_ = robot_model_loader.getModel();
+  robot_model_loader_ = std::make_shared<robot_model_loader::RobotModelLoader>("robot_description");
+  kinematic_model_ = robot_model_loader_->getModel();
   ROS_INFO("Model frame: %s", kinematic_model_->getModelFrame().c_str());
 
   // load robot state
@@ -170,13 +170,13 @@ const IKSolution Robot::ik(const Transform pose)
   // Eigen::Affine3d tool_pose = diff_base.inverse() * pose *
   // tip_frame.inverse();
 
-//   // convert pose from tool_tip to tool0 frame
-//   auto temp = getLinkFixedRelativeTransform("torch") * getLinkFixedRelativeTransform("torch_tip") *
-//               getLinkFixedRelativeTransform("tool_tip");
-//   Transform tool0_to_tool_tip(temp.matrix());
-//   tool0_to_tool_tip = tool0_to_tool_tip.inverse();
-//   Eigen::Isometry3d pose_temp;
-//   pose_temp = pose * tool0_to_tool_tip;
+  //   // convert pose from tool_tip to tool0 frame
+  //   auto temp = getLinkFixedRelativeTransform("torch") * getLinkFixedRelativeTransform("torch_tip") *
+  //               getLinkFixedRelativeTransform("tool_tip");
+  //   Transform tool0_to_tool_tip(temp.matrix());
+  //   tool0_to_tool_tip = tool0_to_tool_tip.inverse();
+  //   Eigen::Isometry3d pose_temp;
+  //   pose_temp = pose * tool0_to_tool_tip;
 
   std::array<double, 6 * 8> sols;
   opw_kinematics::inverse(robot_parameters_, pose, sols.data());
