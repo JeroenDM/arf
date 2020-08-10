@@ -129,6 +129,46 @@ TEST(TestConstructor, TestPosAndRotSamples)
   comparePoses(samples[5], tf_6);
 }
 
+TEST(TestEulerStuff, Stuff)
+{
+  // create all the input for the constructor
+  auto tf = Eigen::Isometry3d::Identity();
+  TSRBounds tsr_bounds;
+  tsr_bounds.x = { -1, 1 };
+  tsr_bounds.y = { 0, 0 };
+  tsr_bounds.z = { 0, 0 };
+  tsr_bounds.rx = { -1, 1 };
+  tsr_bounds.ry = { 0, 0 };
+  tsr_bounds.rz = { 0, 0 };
+  SamplerPtr sampler = std::make_shared<Sampler>();
+  std::vector<int> num_samples = { 3, 1, 1, 2, 1, 1 };
+
+  // create the task space region
+  TSR tsr(tf, tsr_bounds, sampler, num_samples);
+
+  Eigen::Vector3d a1(0.1, 0.2, 0.3);
+  auto res1 = minNormEquivalent(a1);
+  std::cout << res1.transpose() << std::endl;
+
+  EXPECT_NEAR(a1[0], res1[0], TOLERANCE);
+  EXPECT_NEAR(a1[1], res1[1], TOLERANCE);
+  EXPECT_NEAR(a1[2], res1[2], TOLERANCE);
+
+  Eigen::Vector3d a2(3.0, -3.0, 0.3);
+  Eigen::Vector3d expected2(3.0 - M_PI, 3.0 - M_PI, 0.3 - M_PI);
+  auto res2 = minNormEquivalent(a2);
+  std::cout << res2.transpose() << std::endl;
+  std::cout << expected2.transpose() << std::endl;
+
+  EXPECT_NEAR(expected2[0], res2[0], TOLERANCE);
+  EXPECT_NEAR(expected2[1], res2[1], TOLERANCE);
+  EXPECT_NEAR(expected2[2], res2[2], TOLERANCE);
+
+  auto tf2_before = tsr.valuesToPose({ 0, 0, 0, a2.x(), a2.y(), a2.z() });
+  auto tf2_after = tsr.valuesToPose({ 0, 0, 0, res2.x(), res2.y(), res2.z() });
+  comparePoses(tf2_before, tf2_after);
+}
+
 int main(int argc, char** argv)
 {
   testing::InitGoogleTest(&argc, argv);

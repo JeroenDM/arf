@@ -8,6 +8,27 @@
 
 namespace arf
 {
+Eigen::Vector3d minNormEquivalent(const Eigen::Vector3d& angles)
+{
+  Eigen::Matrix<double, 9, 3> m;
+  double x(angles.x()), y(angles.y()), z(angles.z());
+  // clang-format off
+   m <<  x,  y, z,
+        x - M_PI, -y - M_PI, z - M_PI,
+        x - M_PI, -y - M_PI, z + M_PI,
+        x - M_PI, -y + M_PI, z - M_PI,
+        x - M_PI, -y + M_PI, z + M_PI,
+        x + M_PI, -y - M_PI, z - M_PI,
+        x + M_PI, -y - M_PI, z + M_PI,
+        x + M_PI, -y + M_PI, z - M_PI,
+        x + M_PI, -y + M_PI, z + M_PI;
+  // clang-format on
+  // get the index of the row with the lowest norm
+  Eigen::VectorXd::Index index;
+  m.rowwise().norm().minCoeff(&index);
+  return m.row(index);
+}
+
 TSR::TSR(Transform tf, TSRBounds bounds, arf::SamplerPtr sampler, const std::vector<int>& num_samples)
   : tf_nominal_(tf), bounds_(bounds), sampler_(sampler)
 {

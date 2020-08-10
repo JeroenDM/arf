@@ -11,6 +11,8 @@ namespace arf
 {
 typedef Eigen::Isometry3d Transform;
 
+Eigen::Vector3d minNormEquivalent(const Eigen::Vector3d& angles);
+
 struct Bounds
 {
   double lower;
