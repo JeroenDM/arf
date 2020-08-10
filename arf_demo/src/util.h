@@ -10,7 +10,8 @@ public:
   moveit_visual_tools::MoveItVisualToolsPtr visual_tools_;
   Rviz()
   {
-    visual_tools_.reset(new moveit_visual_tools::MoveItVisualTools("world", "/rviz_visual_tools"));
+    visual_tools_.reset(new moveit_visual_tools::MoveItVisualTools("/base_link", "/visualization_marker_array"));
+    visual_tools_->loadRobotStatePub("/display_robot_state");
   }
 
   void plotPose(Eigen::Affine3d pose);

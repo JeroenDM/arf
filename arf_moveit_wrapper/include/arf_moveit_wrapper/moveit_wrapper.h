@@ -15,7 +15,6 @@
 
 namespace arf
 {
-
 using Transform = Eigen::Isometry3d;
 
 template <typename T>
@@ -24,7 +23,7 @@ opw_kinematics::Parameters<T> makeKukaKr5()
   opw_kinematics::Parameters<T> p;
   p.a1 = T(0.180);
   p.a2 = T(-0.120);
-  p.b =  T(0.000);
+  p.b = T(0.000);
   p.c1 = T(0.400);
   p.c2 = T(0.600);
   p.c3 = T(0.620);
@@ -40,40 +39,45 @@ opw_kinematics::Parameters<T> makeKukaKr5()
 
 typedef std::vector<std::vector<double>> IKSolution;
 
-
 class RobotMoveitWrapper
 {
 protected:
-    robot_model::RobotModelPtr kinematic_model_; /**< Kinematic description of the robot. */
-    robot_state::RobotStatePtr kinematic_state_; /**< Kinematic state of the robot */
-    const robot_state::JointModelGroup* joint_model_group_; /**< Pointer to planning group */
+  robot_model::RobotModelPtr kinematic_model_;            /**< Kinematic description of the robot. */
+  robot_state::RobotStatePtr kinematic_state_;            /**< Kinematic state of the robot */
+  const robot_state::JointModelGroup* joint_model_group_; /**< Pointer to planning group */
 
-    planning_scene::PlanningScenePtr planning_scene_; /**< Pointer to planning scene with collision objects */
-    planning_scene_monitor::PlanningSceneMonitorPtr planning_scene_monitor_;
+  planning_scene::PlanningScenePtr planning_scene_; /**< Pointer to planning scene with collision objects */
+  planning_scene_monitor::PlanningSceneMonitorPtr planning_scene_monitor_;
+  bool check_collisions_ = true;
 
-    opw_kinematics::Parameters<double> robot_parameters_ = makeKukaKr5<double>(); /**< Geometric parameters for ik */
-    bool check_collisions_ = true;
 public:
-    RobotMoveitWrapper();
-    ~RobotMoveitWrapper() = default;
+  RobotMoveitWrapper();
+  ~RobotMoveitWrapper() = default;
 
-    void updatePlanningScene();
-    bool isInJointLimits(const std::vector<double>& q) const;
-    bool isInCollision(const std::vector<double>& joint_pose) const;
-    const Eigen::Affine3d fk(const std::vector<double>& q, const std::string& frame = "tool_tip") const;
-    const IKSolution ik(const Transform pose);
-    
-    const Eigen::Affine3d getLinkFixedRelativeTransform(const std::string & name) const;
+  void updatePlanningScene();
+  bool isInJointLimits(const std::vector<double>& q) const;
+  bool isInCollision(const std::vector<double>& joint_pose) const;
+  const Eigen::Affine3d fk(const std::vector<double>& q, const std::string& frame = "tool0") const;
+  virtual const IKSolution ik(const Transform pose);
 
-    // print info functions
-    void printCurrentJointValues() const;
-    void printJointFixedRelativeTransforms() const;
+  const Eigen::Affine3d getLinkFixedRelativeTransform(const std::string& name) const;
 
-    void plot(moveit_visual_tools::MoveItVisualToolsPtr mvt, std::vector<double>& joint_pose);
+  // print info functions
+  void printCurrentJointValues() const;
+  void printJointFixedRelativeTransforms() const;
+
+  void plot(moveit_visual_tools::MoveItVisualToolsPtr mvt, std::vector<double>& joint_pose);
 };
 
-class Robot : public RobotMoveitWrapper {};
+class Robot : public RobotMoveitWrapper
+{
+public:
+  const IKSolution ik(const Transform pose) override;
 
-} // namespace arf
+private:
+  opw_kinematics::Parameters<double> robot_parameters_ = makeKukaKr5<double>(); /**< Geometric parameters for ik */
+};
+
+}  // namespace arf
 
 #endif

@@ -16,33 +16,32 @@
 
 namespace arf
 {
-
 RobotMoveitWrapper::RobotMoveitWrapper()
 {
-    // load robot model
-    robot_model_loader::RobotModelLoader robot_model_loader("robot_description");
-    kinematic_model_ = robot_model_loader.getModel();
-    ROS_INFO("Model frame: %s", kinematic_model_->getModelFrame().c_str());
+  // load robot model
+  robot_model_loader::RobotModelLoader robot_model_loader("robot_description");
+  kinematic_model_ = robot_model_loader.getModel();
+  ROS_INFO("Model frame: %s", kinematic_model_->getModelFrame().c_str());
 
-    // load robot state
-    kinematic_state_.reset(new robot_state::RobotState(kinematic_model_));
-    kinematic_state_->setToDefaultValues();
-    joint_model_group_ = kinematic_model_->getJointModelGroup("manipulator");
+  // load robot state
+  kinematic_state_.reset(new robot_state::RobotState(kinematic_model_));
+  kinematic_state_->setToDefaultValues();
+  joint_model_group_ = kinematic_model_->getJointModelGroup("manipulator");
 
-    // create planning scene to for collision checking
-    planning_scene_.reset(new planning_scene::PlanningScene(kinematic_model_));
-    planning_scene_monitor_.reset(new planning_scene_monitor::PlanningSceneMonitor("robot_description"));
-    updatePlanningScene();
+  // create planning scene to for collision checking
+  planning_scene_.reset(new planning_scene::PlanningScene(kinematic_model_));
+  planning_scene_monitor_.reset(new planning_scene_monitor::PlanningSceneMonitor("robot_description"));
+  updatePlanningScene();
 }
 
 void RobotMoveitWrapper::updatePlanningScene()
 {
-    // I'm not sure yet how this works
-    planning_scene_monitor_->requestPlanningSceneState();
-    planning_scene_monitor::LockedPlanningSceneRW ps(planning_scene_monitor_);
-    ps->getCurrentStateNonConst().update();
-    planning_scene_ = ps->diff();
-    planning_scene_->decoupleParent();
+  // I'm not sure yet how this works
+  planning_scene_monitor_->requestPlanningSceneState();
+  planning_scene_monitor::LockedPlanningSceneRW ps(planning_scene_monitor_);
+  ps->getCurrentStateNonConst().update();
+  planning_scene_ = ps->diff();
+  planning_scene_->decoupleParent();
 }
 
 /**
@@ -52,9 +51,9 @@ void RobotMoveitWrapper::updatePlanningScene()
  * as a child link.
  * @param frame The name of the frame to get the relative pose for.
  */
-const Eigen::Affine3d RobotMoveitWrapper::getLinkFixedRelativeTransform(const std::string & frame) const
+const Eigen::Affine3d RobotMoveitWrapper::getLinkFixedRelativeTransform(const std::string& frame) const
 {
-    return kinematic_model_->getLinkModel(frame)->getJointOriginTransform();
+  return kinematic_model_->getLinkModel(frame)->getJointOriginTransform();
 }
 
 /**
@@ -63,8 +62,8 @@ const Eigen::Affine3d RobotMoveitWrapper::getLinkFixedRelativeTransform(const st
  */
 bool RobotMoveitWrapper::isInJointLimits(const std::vector<double>& q) const
 {
-    kinematic_state_->setJointGroupPositions(joint_model_group_, q);
-    return kinematic_state_->satisfiesBounds();
+  kinematic_state_->setJointGroupPositions(joint_model_group_, q);
+  return kinematic_state_->satisfiesBounds();
 }
 
 bool RobotMoveitWrapper::isInCollision(const std::vector<double>& joint_pose) const
@@ -72,9 +71,9 @@ bool RobotMoveitWrapper::isInCollision(const std::vector<double>& joint_pose) co
   bool in_collision = false;
   if (check_collisions_)
   {
-    //ROS_INFO("Checking for collision.");
+    // ROS_INFO("Checking for collision.");
 
-    //planning_scene_->printKnownObjects(std::cout);
+    // planning_scene_->printKnownObjects(std::cout);
 
     kinematic_state_->setJointGroupPositions(joint_model_group_, joint_pose);
     in_collision = planning_scene_->isStateColliding(*kinematic_state_);
@@ -100,82 +99,107 @@ bool RobotMoveitWrapper::isInCollision(const std::vector<double>& joint_pose) co
  */
 const Eigen::Affine3d RobotMoveitWrapper::fk(const std::vector<double>& q, const std::string& frame) const
 {
-    kinematic_state_->setJointGroupPositions(joint_model_group_, q);
-    return kinematic_state_->getGlobalLinkTransform(frame);
+  kinematic_state_->setJointGroupPositions(joint_model_group_, q);
+  return kinematic_state_->getGlobalLinkTransform(frame);
 }
 
 const IKSolution RobotMoveitWrapper::ik(const Transform pose)
 {
-      IKSolution joint_poses;
+  IKSolution joint_poses;
 
-    // Transform input pose
-    // needed if we introduce a tip frame different from tool0
-    // or a different base frame
-    // Eigen::Affine3d tool_pose = diff_base.inverse() * pose *
-    // tip_frame.inverse();
+  // Transform input pose
+  // needed if we introduce a tip frame different from tool0
+  // or a different base frame
+  // Eigen::Affine3d tool_pose = diff_base.inverse() * pose *
+  // tip_frame.inverse();
 
+  bool ik_success = kinematic_state_->setFromIK(joint_model_group_, pose);
+  if (ik_success)
+  {
+    joint_poses.resize(1);
+    kinematic_state_->copyJointGroupPositions(joint_model_group_, joint_poses[0]);
+  }
+  else
+  {
+    ROS_ERROR_STREAM("Inverse kinematics failed for end-effector position: " << pose.translation().transpose());
+    ROS_ERROR_STREAM("and orientation: " << pose.rotation());
+  }
 
-    // convert pose from tool_tip to tool0 frame
-    auto temp = getLinkFixedRelativeTransform("torch") * getLinkFixedRelativeTransform("torch_tip") * getLinkFixedRelativeTransform("tool_tip");
-    Transform tool0_to_tool_tip(temp.matrix());
-    tool0_to_tool_tip = tool0_to_tool_tip.inverse();
-    Eigen::Isometry3d pose_temp;
-    pose_temp = pose * tool0_to_tool_tip;
-
-    std::array<double, 6 * 8> sols;
-    opw_kinematics::inverse(robot_parameters_, pose_temp, sols.data());
-
-    // Check the output
-    std::vector<double> tmp(6);  // temporary storage for API reasons
-    for (int i = 0; i < 8; i++)
-    {
-        double* sol = sols.data() + 6 * i;
-        if (opw_kinematics::isValid(sol))
-        {
-        opw_kinematics::harmonizeTowardZero(sol);
-
-        // TODO: make this better...
-        std::copy(sol, sol + 6, tmp.data());
-        // if (isValid(tmp))
-        // {
-        joint_poses.push_back(tmp);
-        // }
-        }
-    }
-
-    return joint_poses;
+  return joint_poses;
 }
 
 // print info functions
 void RobotMoveitWrapper::printCurrentJointValues() const
 {
-    const std::vector<std::string>& joint_names = joint_model_group_->getVariableNames();
-    std::vector<double> joint_values;
-    kinematic_state_->copyJointGroupPositions(joint_model_group_, joint_values);
-    for (std::size_t i = 0; i < joint_names.size(); ++i)
-    {
-        ROS_INFO("Joint %s: %f", joint_names[i].c_str(), joint_values[i]);
-    }
+  const std::vector<std::string>& joint_names = joint_model_group_->getVariableNames();
+  std::vector<double> joint_values;
+  kinematic_state_->copyJointGroupPositions(joint_model_group_, joint_values);
+  for (std::size_t i = 0; i < joint_names.size(); ++i)
+  {
+    ROS_INFO("Joint %s: %f", joint_names[i].c_str(), joint_values[i]);
+  }
 }
 
 void RobotMoveitWrapper::printJointFixedRelativeTransforms() const
 {
-    const std::vector< moveit::core::LinkModel* >  lms = kinematic_model_->getLinkModels();
-    for (auto link : lms)
-    {
-        ROS_INFO_STREAM( "====== link " << link->getName() );
-        Eigen::Vector3d pi = link->getJointOriginTransform().translation();
-        ROS_INFO_STREAM( "Translation: " <<  pi.transpose());
-    }
+  const std::vector<moveit::core::LinkModel*> lms = kinematic_model_->getLinkModels();
+  for (auto link : lms)
+  {
+    ROS_INFO_STREAM("====== link " << link->getName());
+    Eigen::Vector3d pi = link->getJointOriginTransform().translation();
+    ROS_INFO_STREAM("Translation: " << pi.transpose());
+  }
 }
 
 void RobotMoveitWrapper::plot(moveit_visual_tools::MoveItVisualToolsPtr mvt, std::vector<double>& joint_pose)
 {
-    namespace rvt = rviz_visual_tools;
-    kinematic_state_->setJointGroupPositions(joint_model_group_, joint_pose);
-    //printCurrentJointValues();
-    mvt->publishRobotState(kinematic_state_, rvt::DEFAULT);
-    mvt->trigger();
+  namespace rvt = rviz_visual_tools;
+  kinematic_state_->setJointGroupPositions(joint_model_group_, joint_pose);
+  // printCurrentJointValues();
+  mvt->publishRobotState(kinematic_state_, rvt::DEFAULT);
+  mvt->trigger();
 }
 
-} // namespace arf
+const IKSolution Robot::ik(const Transform pose)
+{
+  IKSolution joint_poses;
+
+  // Transform input pose
+  // needed if we introduce a tip frame different from tool0
+  // or a different base frame
+  // Eigen::Affine3d tool_pose = diff_base.inverse() * pose *
+  // tip_frame.inverse();
+
+//   // convert pose from tool_tip to tool0 frame
+//   auto temp = getLinkFixedRelativeTransform("torch") * getLinkFixedRelativeTransform("torch_tip") *
+//               getLinkFixedRelativeTransform("tool_tip");
+//   Transform tool0_to_tool_tip(temp.matrix());
+//   tool0_to_tool_tip = tool0_to_tool_tip.inverse();
+//   Eigen::Isometry3d pose_temp;
+//   pose_temp = pose * tool0_to_tool_tip;
+
+  std::array<double, 6 * 8> sols;
+  opw_kinematics::inverse(robot_parameters_, pose, sols.data());
+
+  // Check the output
+  std::vector<double> tmp(6);  // temporary storage for API reasons
+  for (int i = 0; i < 8; i++)
+  {
+    double* sol = sols.data() + 6 * i;
+    if (opw_kinematics::isValid(sol))
+    {
+      opw_kinematics::harmonizeTowardZero(sol);
+
+      // TODO: make this better...
+      std::copy(sol, sol + 6, tmp.data());
+      // if (isValid(tmp))
+      // {
+      joint_poses.push_back(tmp);
+      // }
+    }
+  }
+
+  return joint_poses;
+}
+
+}  // namespace arf
