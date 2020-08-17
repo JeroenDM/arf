@@ -70,6 +70,8 @@ public:
   const Eigen::Isometry3d fk(const std::vector<double>& q, const std::string& frame = "tool0") const;
   virtual const IKSolution ik(const Transform pose);
 
+  const Eigen::MatrixXd jac(const Eigen::VectorXd& q) const;
+
   const Eigen::Isometry3d getLinkFixedRelativeTransform(const std::string& name) const;
 
   // print info functions
@@ -84,6 +86,11 @@ public:
     std::vector<double> joint_values;
     kinematic_state_->copyJointGroupPositions(joint_model_group_, joint_values);
     return joint_values;
+  }
+
+  unsigned int getNumDof() const
+  {
+    return joint_model_group_->getVariableCount();
   }
 };
 

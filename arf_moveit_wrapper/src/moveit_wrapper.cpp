@@ -128,6 +128,12 @@ const IKSolution RobotMoveitWrapper::ik(const Transform pose)
   return joint_poses;
 }
 
+const Eigen::MatrixXd RobotMoveitWrapper::jac(const Eigen::VectorXd& q) const
+{
+  kinematic_state_->setJointGroupPositions(joint_model_group_, q);
+  return kinematic_state_->getJacobian(joint_model_group_);
+}
+
 // print info functions
 void RobotMoveitWrapper::printCurrentJointValues() const
 {
