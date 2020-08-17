@@ -87,10 +87,10 @@ typedef std::array<Bound, 6> TSRBounds;
 class TSR
 {
   Eigen::Isometry3d tf_nominal_;
-  std::array<Bound, 6> bounds_;
   arf::SamplerPtr sampler_;
 
 public:
+  const std::array<Bound, 6> bounds_;
   TSR(Transform tf, std::array<Bound, 6> bounds, arf::SamplerPtr sampler, const std::vector<int>& num_samples);
   ~TSR() = default;
 
@@ -126,7 +126,7 @@ public:
    *
    * Position in meter and angles in randians are weighted equally by default.
    * */
-  double volume(double angle_weight = 1.0)
+  double volume(double angle_weight = 1.0) const
   {
     double volume;
     // position part
