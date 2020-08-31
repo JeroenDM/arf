@@ -140,6 +140,10 @@ target_link_libraries(${PROJECT_NAME}_sampling_comparison
   ${catkin_LIBRARIES}
 )
 
+add_executable(${PROJECT_NAME}_planning src/planning.cpp)
+set_target_properties(${PROJECT_NAME}_planning PROPERTIES OUTPUT_NAME planning PREFIX "")
+target_link_libraries(${PROJECT_NAME}_planning ${catkin_LIBRARIES})
+
 #############
 ## Testing ##
 #############
