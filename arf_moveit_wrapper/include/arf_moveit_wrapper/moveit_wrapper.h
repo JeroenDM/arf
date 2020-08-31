@@ -68,6 +68,7 @@ public:
   bool isInJointLimits(const std::vector<double>& q) const;
   bool isInCollision(const std::vector<double>& joint_pose) const;
   const Eigen::Isometry3d fk(const std::vector<double>& q, const std::string& frame = "tool0") const;
+  const Eigen::Isometry3d fk(const Eigen::Ref<const Eigen::VectorXd>& q, const std::string& frame = "tool0") const;
   virtual const IKSolution ik(const Transform pose);
 
   const Eigen::MatrixXd jac(const Eigen::VectorXd& q) const;
@@ -86,6 +87,12 @@ public:
     std::vector<double> joint_values;
     kinematic_state_->copyJointGroupPositions(joint_model_group_, joint_values);
     return joint_values;
+  }
+
+  void getRandomPosition(Eigen::VectorXd& out)
+  {
+    kinematic_state_->setToRandomPositions();
+    kinematic_state_->copyJointGroupPositions(joint_model_group_, out);
   }
 
   unsigned int getNumDof() const

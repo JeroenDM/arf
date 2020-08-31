@@ -103,6 +103,13 @@ const Eigen::Isometry3d RobotMoveitWrapper::fk(const std::vector<double>& q, con
   return kinematic_state_->getGlobalLinkTransform(frame);
 }
 
+const Eigen::Isometry3d RobotMoveitWrapper::fk(const Eigen::Ref<const Eigen::VectorXd>& q,
+                                               const std::string& frame) const
+{
+  kinematic_state_->setJointGroupPositions(joint_model_group_, q);
+  return kinematic_state_->getGlobalLinkTransform(frame);
+}
+
 const IKSolution RobotMoveitWrapper::ik(const Transform pose)
 {
   IKSolution joint_poses;
