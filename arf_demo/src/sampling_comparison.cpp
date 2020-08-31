@@ -75,10 +75,46 @@ const std::string HEADER{ "box_size,tsr_volume,num_s_ik,num_s_rej,time_ik,time_r
 //   return norm < squaredTolerance;
 // }
 
-// std::vector<std::vector<double>> projectionSampling(const arf::RobotMoveitWrapper& robot, const arf::TSR& tsr,
-//                                                     const int min_number_samples)
-// {
-// }
+std::vector<std::vector<double>> projectionSampling(const arf::RobotMoveitWrapperPtr& robot, const arf::TSR& tsr,
+                                                    const std::size_t min_samples = 20)
+{
+  const std::size_t max_iters{ 20000 };
+
+  std::vector<std::vector<double>> samples;
+  samples.reserve(min_samples + 10);  // could be more because of IK solutions
+
+  std::size_t num_samples{ 0 };
+  for (std::size_t iter{ 0 }; iter < max_iters; ++iter)
+  {
+    Eigen::VectorXd joint_values(robot->getNumDof());
+    robot->getRandomPosition(joint_values);
+
+    Eigen::Isometry3d tf;
+    Eigen::Vector6d d;
+    Eigen::MatrixXd jac(6, robot->getNumDof());
+    const int max_iters_2{ 0 };
+    int iters_2{ 0 };
+    const double tolerance{ 1e-3 };
+
+    tf = robot->fk(joint_values);
+    d = tsr.distanceVector(tf);
+    while (d.squaredNorm() < tolerance && iters_2++ < max_iters_2)
+    {
+      jac = robot->jac(joint_values);
+      joint_values -= jac.jacobiSvd(Eigen::ComputeThinU | Eigen::ComputeThinV).solve(d);
+      tf = robot->fk(joint_values);
+      d = tsr.distanceVector(tf);
+    }
+
+    num_samples++;
+    if (num_samples >= min_samples)
+    {
+      break;
+    }
+  }
+  samples.shrink_to_fit();
+  return samples;
+}
 
 int main(int argc, char** argv)
 {
@@ -106,27 +142,28 @@ int main(int argc, char** argv)
   // arf::TSR tsr(tf_nominal, bounds, std::make_shared<arf::RandomSampler>(), ns);
 
   std::cout << HEADER << std::endl;
-  const int num_runs{ 100 };
-  for (double sbox{ 0.2 }; sbox < 2.0; sbox += 0.22)
-  {
-    // ROS_INFO_STREAM("-------------------------------------");
-    // ROS_INFO_STREAM("BOX_SIZE: " << sbox);
+  double sbox{ 1.0 };
+  // const int num_runs{ 1 };
+  // for (double sbox{ 0.2 }; sbox < 2.0; sbox += 0.22)
+  // {
+  // ROS_INFO_STREAM("-------------------------------------");
+  // ROS_INFO_STREAM("BOX_SIZE: " << sbox);
 
-    arf::TSRBounds bounds_2{ { { -sbox / 2, sbox / 2 },
-                               { -sbox / 2, sbox / 2 },
-                               { -sbox / 2, sbox / 2 },
-                               { -M_PI, M_PI },
-                               { -M_PI, M_PI },
-                               { -M_PI, M_PI } } };
-    std::vector<int> ns_2{ 3, 3, 3, 2, 2, 2 };
+  arf::TSRBounds bounds_2{ { { -sbox / 2, sbox / 2 },
+                             { -sbox / 2, sbox / 2 },
+                             { -sbox / 2, sbox / 2 },
+                             { -M_PI, M_PI },
+                             { -M_PI, M_PI },
+                             { -M_PI, M_PI } } };
+  std::vector<int> ns_2{ 3, 3, 3, 2, 2, 2 };
 
-    arf::TSR tsr_2(tf_nominal, bounds_2, std::make_shared<arf::RandomSampler>(), ns_2);
+  arf::TSR tsr_2(tf_nominal, bounds_2, std::make_shared<arf::RandomSampler>(), ns_2);
 
-    for (int run{ 0 }; run < num_runs; ++run)
-    {
-      run_experiment(robot, tsr_2, 50);
-    }
-  }
+  //   for (int run{ 0 }; run < num_runs; ++run)
+  //   {
+  //     run_experiment(robot, tsr_2, 50);
+  //   }
+  // }
 
   // std::size_t num_samples = 100;
 
@@ -138,6 +175,17 @@ int main(int argc, char** argv)
   //   ros::Duration(0.05).sleep();
   //   rviz.plotPose(robot->fk(jp));
   // }
+
+  std::size_t num_samples = 10;
+
+  auto samples1 = projectionSampling(robot, tsr_2, num_samples);
+  ROS_INFO_STREAM("Found " << samples1.size() << " samples");
+  for (auto& jp : samples1)
+  {
+    robot->plot(rviz.visual_tools_, jp);
+    ros::Duration(0.05).sleep();
+    rviz.plotPose(robot->fk(jp));
+  }
 
   // ros::Duration(1.5).sleep();
   // rviz.clear();
