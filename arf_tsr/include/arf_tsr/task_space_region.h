@@ -128,7 +128,7 @@ public:
    * */
   double volume(double angle_weight = 1.0) const
   {
-    double volume;
+    double volume{ 0.0 };
     // position part
     volume += bounds_[0].range();
     volume += bounds_[1].range();
