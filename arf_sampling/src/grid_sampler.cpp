@@ -41,10 +41,10 @@ void GridSampler::recursiveGridSampling(int index, std::vector<double> prev_valu
   {
     for (auto value : sample_range)
     {
+      // get a new instance of the previous values every iteration in this loop
       std::vector<double> pvi(prev_values);
       pvi.push_back(value);
-      std::vector<double> new_element(pvi);
-      grid.push_back(new_element);
+      grid.push_back(pvi);
     }
   }
 }
