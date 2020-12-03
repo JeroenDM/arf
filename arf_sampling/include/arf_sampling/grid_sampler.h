@@ -7,6 +7,23 @@
 
 namespace arf
 {
+typedef unsigned int uint;
+
+/**
+ * Convert a decimal number to a number into a mixed radix number,
+ * with variable base, specified in the bases vector.
+ * **/
+std::vector<uint> convertBase(uint n, std::vector<uint>& bases)
+{
+  std::vector<uint> digits(bases.size());
+  for (std::size_t i{ bases.size() - 1 }; i >= 0; --i)
+  {
+    digits[i] = n % bases[i];
+    n /= bases[i];
+  }
+  return digits;
+}
+
 class GridSampler : public Sampler
 {
   std::vector<int> num_samples_;

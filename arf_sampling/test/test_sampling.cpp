@@ -11,6 +11,15 @@ using namespace arf;
 void printGrid(Grid& grid);
 void compareGrids(Grid& actual, Grid& expected);
 
+TEST(TestUtils, convertBase)
+{
+  std::vector<uint> bases{ 2, 3 };
+  for (uint i{ 0 }; i < 6; ++i)
+  {
+    auto d = convertBase(i, bases);
+  }
+}
+
 TEST(TestGridSampler, addDimensions)
 {
   GridSampler s;
