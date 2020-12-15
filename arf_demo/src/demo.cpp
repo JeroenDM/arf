@@ -44,7 +44,7 @@ int main(int argc, char** argv)
 {
   ros::init(argc, argv, "test_moveit_wrapper");
   ros::NodeHandle node_handle;
-  ros::AsyncSpinner spinner(1);
+  ros::AsyncSpinner spinner(2);
   spinner.start();
 
   arf::Robot robot;
@@ -62,7 +62,7 @@ std::vector<arf::TrajectoryPoint> createPath()
 {
   const int num_path_points = 5;
   const std::vector<double> p1 = { 1, 0, 0.4 };
-  const std::vector<double> p2 = { 1, 0, 0.5 };
+  const std::vector<double> p2 = { 1.5, 0, 0.5 };
 
   std::vector<arf::TrajectoryPoint> path;
 
@@ -86,12 +86,14 @@ void Rviz::plotPose(Eigen::Affine3d pose)
   Eigen::Isometry3d pose_temp(pose.matrix());
   visual_tools_->publishAxis(pose_temp, rvt::LARGE);
   visual_tools_->trigger();
+  ros::Duration(0.1).sleep();
 }
 
 void Rviz::clear()
 {
   visual_tools_->deleteAllMarkers();
   visual_tools_->trigger();
+  ros::Duration(0.1).sleep();
 }
 
 void Demo1::createAndShowTrajectory(Rviz& rviz)
@@ -106,7 +108,8 @@ void Demo1::createAndShowTrajectory(Rviz& rviz)
   }
   for (auto tp : ee_trajectory_)
   {
-    tp.plot(rviz.visual_tools_);
+    rviz.plotPose(tp.getNominalPose());
+    // tp.plot(rviz.visual_tools_);
   }
 }
 
