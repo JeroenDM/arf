@@ -24,6 +24,7 @@ include_directories(
 add_library(
   ${PROJECT_NAME}
   src/graph.cpp
+  src/tree.cpp
 )
 
 target_link_libraries(
