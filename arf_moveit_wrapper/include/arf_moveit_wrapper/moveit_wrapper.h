@@ -40,6 +40,41 @@ opw_kinematics::Parameters<T> makeKukaKr5()
 
 typedef std::vector<std::vector<double>> IKSolution;
 
+class RobotBase
+{
+  std::size_t num_dof_;
+  std::size_t num_redundant_;
+  Eigen::VectorXd lower_joint_limits_;
+  Eigen::VectorXd upper_joint_limits_;
+
+public:
+  RobotBase() = default;
+  ~RobotBase() = default;
+
+  virtual Transform forward(const Eigen::VectorXd& q) = 0;
+  virtual IKSolution inverse(const Transform& p, const Eigen::VectorXd& q_redundant) = 0;
+
+  // collision checking TODO what about planning for multiple end-effectors?
+  virtual bool isEndEffectorCollisionFree(const Transform& p) = 0;
+  virtual bool areRedundantLinksCollisionFree(const Eigen::VectorXd& q) = 0;
+  virtual bool areBaseLinksCollisionFree(const Eigen::VectorXd& q) = 0;
+
+  // getters
+  std::size_t getNumDof() { return num_dof_; }
+
+  std::size_t getNumRedundantJoints() { return num_redundant_;}
+
+  const Eigen::VectorXd& getLowerJointLimits()
+  {
+    return lower_joint_limits_;
+  }
+
+  const Eigen::VectorXd& getUpperJointLimits()
+  {
+    return upper_joint_limits_;
+  }
+};
+
 class RobotMoveitWrapper
 {
 protected:
