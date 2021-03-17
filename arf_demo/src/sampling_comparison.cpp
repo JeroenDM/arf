@@ -2,11 +2,12 @@
 
 #include <chrono>
 
-#include <arf_moveit_wrapper/moveit_wrapper.h>
+#include <simple_moveit_wrapper/industrial_robot.h>
 #include <arf_tsr/task_space_region.h>
 #include <arf_sampling/random_sampler.h>
 #include <moveit_visual_tools/moveit_visual_tools.h>
 namespace rvt = rviz_visual_tools;
+namespace smw = simple_moveit_wrapper;
 
 // #include "util.h"
 
@@ -25,13 +26,13 @@ public:
   void clear();
 };
 
-std::vector<std::vector<double>> rejectionSampling(const arf::RobotMoveitWrapperPtr& robot, const arf::TSR& tsr,
+std::vector<std::vector<double>> rejectionSampling(smw::Robot& robot, const arf::TSR& tsr,
                                                    const std::size_t min_samples = 20);
+std::vector<std::vector<double>> ikSampling(smw::Robot& robot, const arf::TSR& tsr, const std::size_t min_samples = 20);
+std::vector<std::vector<double>> projectionSampling(smw::Robot& robot, const arf::TSR& tsr,
+                                                    const std::size_t min_samples = 20);
 
-std::vector<std::vector<double>> ikSampling(const arf::RobotMoveitWrapperPtr& robot, const arf::TSR& tsr,
-                                            const std::size_t min_samples = 20);
-
-void run_experiment(const arf::RobotMoveitWrapperPtr& robot, const arf::TSR& tsr, const int min_number_samples)
+void run_experiment(smw::Robot& robot, const arf::TSR& tsr, const int min_number_samples)
 {
   double time_ik{ 0.0 };
   double time_rej{ 0.0 };
@@ -75,47 +76,6 @@ const std::string HEADER{ "box_size,tsr_volume,num_s_ik,num_s_rej,time_ik,time_r
 //   return norm < squaredTolerance;
 // }
 
-std::vector<std::vector<double>> projectionSampling(const arf::RobotMoveitWrapperPtr& robot, const arf::TSR& tsr,
-                                                    const std::size_t min_samples = 20)
-{
-  const std::size_t max_iters{ 20000 };
-
-  std::vector<std::vector<double>> samples;
-  samples.reserve(min_samples + 10);  // could be more because of IK solutions
-
-  std::size_t num_samples{ 0 };
-  for (std::size_t iter{ 0 }; iter < max_iters; ++iter)
-  {
-    Eigen::VectorXd joint_values(robot->getNumDof());
-    robot->getRandomPosition(joint_values);
-
-    Eigen::Isometry3d tf;
-    Eigen::Vector6d d;
-    Eigen::MatrixXd jac(6, robot->getNumDof());
-    const int max_iters_2{ 0 };
-    int iters_2{ 0 };
-    const double tolerance{ 1e-3 };
-
-    tf = robot->fk(joint_values);
-    d = tsr.distanceVector(tf);
-    while (d.squaredNorm() < tolerance && iters_2++ < max_iters_2)
-    {
-      jac = robot->jac(joint_values);
-      joint_values -= jac.jacobiSvd(Eigen::ComputeThinU | Eigen::ComputeThinV).solve(d);
-      tf = robot->fk(joint_values);
-      d = tsr.distanceVector(tf);
-    }
-
-    num_samples++;
-    if (num_samples >= min_samples)
-    {
-      break;
-    }
-  }
-  samples.shrink_to_fit();
-  return samples;
-}
-
 int main(int argc, char** argv)
 {
   ros::init(argc, argv, "demo_table");
@@ -125,14 +85,14 @@ int main(int argc, char** argv)
 
   // double BOX_SIZE{ 0.2 };
 
-  arf::RobotMoveitWrapperPtr robot = std::make_shared<arf::Robot>();
+  smw::IndustrialRobot robot;
   Rviz rviz;
   rviz.clear();
 
   std::vector<double> home = { 0, -1.5, 1.5, 0, 0, 0 };
-  robot->plot(rviz.visual_tools_, home);
+  robot.plot(rviz.visual_tools_, home);
 
-  arf::Transform tf_nominal(robot->fk(home));
+  arf::Transform tf_nominal(robot.fk(home));
   rviz.plotPose(tf_nominal);
 
   // arf::TSRBounds bounds{
@@ -142,7 +102,7 @@ int main(int argc, char** argv)
   // arf::TSR tsr(tf_nominal, bounds, std::make_shared<arf::RandomSampler>(), ns);
 
   std::cout << HEADER << std::endl;
-  double sbox{ 1.0 };
+  double sbox{ 0.2 };
   // const int num_runs{ 1 };
   // for (double sbox{ 0.2 }; sbox < 2.0; sbox += 0.22)
   // {
@@ -165,44 +125,42 @@ int main(int argc, char** argv)
   //   }
   // }
 
-  // std::size_t num_samples = 100;
-
-  // auto samples1 = ikSampling(robot, tsr_2, 200);
-  // ROS_INFO_STREAM("Found " << samples1.size() << " samples");
-  // for (auto& jp : samples1)
-  // {
-  //   robot->plot(rviz.visual_tools_, jp);
-  //   ros::Duration(0.05).sleep();
-  //   rviz.plotPose(robot->fk(jp));
-  // }
-
   std::size_t num_samples = 10;
 
-  auto samples1 = projectionSampling(robot, tsr_2, num_samples);
+  auto samples1 = ikSampling(robot, tsr_2, num_samples);
   ROS_INFO_STREAM("Found " << samples1.size() << " samples");
   for (auto& jp : samples1)
   {
-    robot->plot(rviz.visual_tools_, jp);
+    robot.plot(rviz.visual_tools_, jp);
     ros::Duration(0.05).sleep();
-    rviz.plotPose(robot->fk(jp));
+    rviz.plotPose(robot.fk(jp));
   }
 
-  // ros::Duration(1.5).sleep();
-  // rviz.clear();
-  // ros::Duration(0.5).sleep();
+  samples1 = projectionSampling(robot, tsr_2, num_samples);
+  ROS_INFO_STREAM("Found " << samples1.size() << " samples");
+  for (auto& jp : samples1)
+  {
+    robot.plot(rviz.visual_tools_, jp);
+    ros::Duration(0.05).sleep();
+    rviz.plotPose(robot.fk(jp));
+  }
 
-  // robot->plot(rviz.visual_tools_, home);
+  ros::Duration(1.5).sleep();
+  rviz.clear();
+  ros::Duration(0.5).sleep();
 
-  // auto samples = rejectionSampling(robot, tsr_2, num_samples);
-  // ROS_INFO_STREAM("Found " << samples.size() << " samples");
-  // for (auto& jp : samples)
-  // {
-  //   robot->plot(rviz.visual_tools_, jp);
-  //   ros::Duration(0.05).sleep();
-  //   rviz.plotPose(robot->fk(jp));
-  // }
+  robot.plot(rviz.visual_tools_, home);
 
-  // robot->plot(rviz.visual_tools_, home);
+  auto samples = rejectionSampling(robot, tsr_2, num_samples);
+  ROS_INFO_STREAM("Found " << samples.size() << " samples");
+  for (auto& jp : samples)
+  {
+    robot.plot(rviz.visual_tools_, jp);
+    ros::Duration(0.05).sleep();
+    rviz.plotPose(robot.fk(jp));
+  }
+
+  // robot.plot(rviz.visual_tools_, home);
 
   // ros::Duration(0.1).sleep();
 
@@ -223,10 +181,10 @@ void Rviz::clear()
   visual_tools_->trigger();
 }
 
-std::vector<std::vector<double>> rejectionSampling(const arf::RobotMoveitWrapperPtr& robot, const arf::TSR& tsr,
+std::vector<std::vector<double>> rejectionSampling(smw::Robot& robot, const arf::TSR& tsr,
                                                    const std::size_t min_samples)
 {
-  const std::size_t max_iters{ 2000 };
+  const std::size_t max_iters{ 20000 };
 
   std::vector<std::vector<double>> samples;
   samples.reserve(min_samples);
@@ -234,8 +192,8 @@ std::vector<std::vector<double>> rejectionSampling(const arf::RobotMoveitWrapper
   std::size_t num_samples{ 0 };
   for (std::size_t iter{ 0 }; iter < max_iters; ++iter)
   {
-    auto jp = robot->getRandomPosition();
-    auto tf = robot->fk(jp);
+    auto jp = robot.randomJointPositions();
+    auto tf = robot.fk(jp);
     double d = tsr.distance(tf);
 
     if (d < 0.001)
@@ -260,10 +218,9 @@ std::vector<std::vector<double>> rejectionSampling(const arf::RobotMoveitWrapper
   return samples;
 }
 
-std::vector<std::vector<double>> ikSampling(const arf::RobotMoveitWrapperPtr& robot, const arf::TSR& tsr,
-                                            const std::size_t min_samples)
+std::vector<std::vector<double>> ikSampling(smw::Robot& robot, const arf::TSR& tsr, const std::size_t min_samples)
 {
-  const std::size_t max_iters{ 2000 };
+  const std::size_t max_iters{ 20000 };
 
   std::vector<std::vector<double>> samples;
   samples.reserve(min_samples + 10);  // could be more because of IK solutions
@@ -274,7 +231,7 @@ std::vector<std::vector<double>> ikSampling(const arf::RobotMoveitWrapperPtr& ro
     auto tsamples = tsr.getSamples();
     for (auto& pose : tsamples)
     {
-      auto iksols = robot->ik(pose);
+      auto iksols = robot.ik(pose);
       for (auto& js : iksols)
       {
         samples.push_back(js);
@@ -289,6 +246,47 @@ std::vector<std::vector<double>> ikSampling(const arf::RobotMoveitWrapperPtr& ro
     if (num_samples >= min_samples)
     {
       // ROS_INFO_STREAM("IK sampler found " << num_samples << " in " << iter << " iterations.");
+      break;
+    }
+  }
+  samples.shrink_to_fit();
+  return samples;
+}
+
+std::vector<std::vector<double>> projectionSampling(smw::Robot& robot, const arf::TSR& tsr,
+                                                    const std::size_t min_samples)
+{
+  const std::size_t max_iters{ 20000 };
+
+  std::vector<std::vector<double>> samples;
+  samples.reserve(min_samples + 10);  // could be more because of IK solutions
+
+  std::size_t num_samples{ 0 };
+  for (std::size_t iter{ 0 }; iter < max_iters; ++iter)
+  {
+    Eigen::VectorXd joint_values(robot.getNumDof());
+    robot.randomJointPositions(joint_values);
+
+    Eigen::Isometry3d tf;
+    Eigen::Vector6d d;
+    Eigen::MatrixXd jac(6, robot.getNumDof());
+    const int max_iters_2{ 0 };
+    int iters_2{ 0 };
+    const double tolerance{ 1e-3 };
+
+    tf = robot.fk(joint_values);
+    d = tsr.distanceVector(tf);
+    while (d.squaredNorm() < tolerance && iters_2++ < max_iters_2)
+    {
+      jac = robot.jacobian(joint_values);
+      joint_values -= jac.jacobiSvd(Eigen::ComputeThinU | Eigen::ComputeThinV).solve(d);
+      tf = robot.fk(joint_values);
+      d = tsr.distanceVector(tf);
+    }
+
+    num_samples++;
+    if (num_samples >= min_samples)
+    {
       break;
     }
   }

@@ -6,13 +6,15 @@
 #include <map>
 #include <functional>
 
-#include <arf_moveit_wrapper/moveit_wrapper.h>
+#include <simple_moveit_wrapper/industrial_robot.h>
 #include <arf_tsr/task_space_region.h>
 #include <arf_sampling/random_sampler.h>
 // #include <arf_sampling/grid_sampler.h>
 // #include <arf_sampling/halton_sampler.h>
 #include <moveit_visual_tools/moveit_visual_tools.h>
+
 namespace rvt = rviz_visual_tools;
+namespace smw = simple_moveit_wrapper;
 
 class Rviz
 {
@@ -29,7 +31,7 @@ public:
   void clear();
 };
 
-std::vector<std::vector<double>> ikSampling(const arf::RobotMoveitWrapperPtr& robot, const arf::TSR& tsr,
+std::vector<std::vector<double>> ikSampling(smw::Robot& robot, const arf::TSR& tsr,
                                             const std::size_t min_samples);
 
 static constexpr double INF{ std::numeric_limits<double>::infinity() };
@@ -104,14 +106,14 @@ int main(int argc, char** argv)
 
   // double BOX_SIZE{ 0.2 };
 
-  arf::RobotMoveitWrapperPtr robot = std::make_shared<arf::Robot>();
+  simple_moveit_wrapper::IndustrialRobot robot;
   Rviz rviz;
   rviz.clear();
 
   std::vector<double> home = { 0, -1.5, 1.5, 0, 0, 0 };
-  robot->plot(rviz.visual_tools_, home);
+  robot.plot(rviz.visual_tools_, home);
 
-  arf::Transform tf_nominal(robot->fk(home));
+  arf::Transform tf_nominal(robot.fk(home));
   rviz.plotPose(tf_nominal);
 
   double sbox{ 0.5 };
@@ -134,9 +136,9 @@ int main(int argc, char** argv)
 
   for (auto& jp : samples1)
   {
-    robot->plot(rviz.visual_tools_, jp);
+    robot.plot(rviz.visual_tools_, jp);
     ros::Duration(0.05).sleep();
-    rviz.plotPose(robot->fk(jp));
+    rviz.plotPose(robot.fk(jp));
 
     // std::cout << jp << std::endl;
 
@@ -168,7 +170,7 @@ void Rviz::clear()
   visual_tools_->trigger();
 }
 
-std::vector<std::vector<double>> ikSampling(const arf::RobotMoveitWrapperPtr& robot, const arf::TSR& tsr,
+std::vector<std::vector<double>> ikSampling(smw::Robot& robot, const arf::TSR& tsr,
                                             const std::size_t min_samples)
 {
   const std::size_t max_iters{ 2000 };
@@ -182,7 +184,7 @@ std::vector<std::vector<double>> ikSampling(const arf::RobotMoveitWrapperPtr& ro
     auto tsamples = tsr.getSamples();
     for (auto& pose : tsamples)
     {
-      auto iksols = robot->ik(pose);
+      auto iksols = robot.ik(pose);
       for (auto& js : iksols)
       {
         samples.push_back(js);
