@@ -9,6 +9,7 @@ find_package(catkin REQUIRED COMPONENTS
   arf_trajectory
   moveit_visual_tools
   roscpp
+  simple_moveit_wrapper
 )
 
 catkin_package(
