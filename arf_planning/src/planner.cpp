@@ -2,7 +2,7 @@
 
 namespace arf
 {
-bool Planner::createGraphData(smw::Robot& robot)
+bool Planner::createGraphData(Robot& robot)
 {
   // hardcoded redundant joint samples
   // this was implemented in the robot class in the past
@@ -10,8 +10,12 @@ bool Planner::createGraphData(smw::Robot& robot)
   // TODO sample redundant joints here!
   assert(robot.getNumRedDof() == 1);  // hard coded for a single redundant dof;
   std::vector<std::vector<double>> q_red_samples;
-  for (double v{ 0.0 }; v <= 2.0; v += 0.1)
+  double v{ 0.0 };
+  for (std::size_t i{ 0 }; i <= 20; i++)
+  {
     q_red_samples.push_back({ v });
+    v += 0.1;
+  }
 
   ROS_INFO_STREAM("Received trajectory of with points: " << ee_trajectory_.size());
   for (auto tp : ee_trajectory_)
@@ -48,7 +52,7 @@ bool Planner::createGraphData(smw::Robot& robot)
   return true;
 }
 
-void Planner::calculateShortestPath(smw::Robot& robot)
+void Planner::calculateShortestPath(Robot& robot)
 {
   Graph demo_graph(graph_data_);
   demo_graph.runMultiSourceDijkstra();
@@ -61,7 +65,7 @@ void Planner::calculateShortestPath(smw::Robot& robot)
   }
 }
 
-void Planner::showShortestPath(smw::Robot& robot, moveit_visual_tools::MoveItVisualToolsPtr vs)
+void Planner::showShortestPath(Robot& robot, moveit_visual_tools::MoveItVisualToolsPtr vs)
 {
   for (auto q : shortest_path_)
   {
@@ -70,7 +74,7 @@ void Planner::showShortestPath(smw::Robot& robot, moveit_visual_tools::MoveItVis
   }
 }
 
-bool Planner::run(smw::Robot& robot, std::vector<TrajectoryPoint>& task)
+bool Planner::run(Robot& robot, std::vector<TrajectoryPoint>& task)
 {
   setTrajectory(task);
   if (createGraphData(robot))

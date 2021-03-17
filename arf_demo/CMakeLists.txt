@@ -100,24 +100,19 @@ target_link_libraries(${PROJECT_NAME}_demo
 )
 
 
-# add_executable(${PROJECT_NAME}_demo2 src/demo2.cpp)
+add_executable(${PROJECT_NAME}_demo2 src/demo2.cpp)
 add_executable(${PROJECT_NAME}_demo_table src/demo_table.cpp)
 add_executable(${PROJECT_NAME}_sampling_comparison src/sampling_comparison.cpp)
 
 
-# set_target_properties(${PROJECT_NAME}_demo2 PROPERTIES OUTPUT_NAME demo2 PREFIX "")
+set_target_properties(${PROJECT_NAME}_demo2 PROPERTIES OUTPUT_NAME demo2 PREFIX "")
 set_target_properties(${PROJECT_NAME}_demo_table PROPERTIES OUTPUT_NAME demo_table PREFIX "")
 set_target_properties(${PROJECT_NAME}_sampling_comparison PROPERTIES OUTPUT_NAME sampling_comparison PREFIX "")
 
-## Add cmake target dependencies of the executable
-## same as for the library above
-#add_dependencies(${PROJECT_NAME}_demo ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
-## Specify libraries to link a library or executable target against
-
-# target_link_libraries(${PROJECT_NAME}_demo2
-#   ${catkin_LIBRARIES}
-# )
+target_link_libraries(${PROJECT_NAME}_demo2
+  ${catkin_LIBRARIES}
+)
 target_link_libraries(${PROJECT_NAME}_demo_table
   ${catkin_LIBRARIES}
 )

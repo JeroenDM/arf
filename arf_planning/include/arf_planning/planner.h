@@ -12,10 +12,11 @@
 
 namespace arf
 {
-namespace smw = simple_moveit_wrapper;
 
 class Planner
 {
+  using Robot = simple_moveit_wrapper::Robot;
+
   std::vector<std::vector<std::vector<double>>> graph_data_;
   std::vector<TrajectoryPoint> ee_trajectory_;
   std::vector<std::vector<double>> shortest_path_;
@@ -27,20 +28,20 @@ public:
   {
     ee_trajectory_ = traj;
   }
-  bool createGraphData(smw::Robot& robot);
-  void calculateShortestPath(smw::Robot& robot);
+  bool createGraphData(Robot& robot);
+  void calculateShortestPath(Robot& robot);
   std::vector<std::vector<double>> getShortestPath()
   {
     return shortest_path_;
   }
-  void showShortestPath(smw::Robot& robot, moveit_visual_tools::MoveItVisualToolsPtr vs);
+  void showShortestPath(Robot& robot, moveit_visual_tools::MoveItVisualToolsPtr vs);
 
   const std::vector<std::vector<double>>& getTPData(int index)
   {
     return graph_data_.at(index);
   }
 
-  bool run(smw::Robot& robot, std::vector<TrajectoryPoint>& task);
+  bool run(Robot& robot, std::vector<TrajectoryPoint>& task);
 };
 
 }  // namespace arf

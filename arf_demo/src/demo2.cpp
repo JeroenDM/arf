@@ -10,17 +10,18 @@
 #include <moveit/move_group_interface/move_group_interface.h>
 #include <eigen_conversions/eigen_msg.h>
 
-//#include "arf_moveit_wrapper/moveit_wrapper.h"
-#include "arf_moveit_wrapper/redundant_robot.h"
+#include <simple_moveit_wrapper/industrial_robot.h>
 #include "arf_trajectory/trajectory.h"
 #include "arf_graph/graph.h"
 #include "arf_graph/util.h"
 #include "arf_planning/planner.h"
 
-#include "arf_demo/TrajOptPlanningServer.h"
-#include "trajectory_msgs/JointTrajectory.h"
+// #include "arf_demo/TrajOptPlanningServer.h"
+// #include "trajectory_msgs/JointTrajectory.h"
 
 namespace rvt = rviz_visual_tools;
+namespace smw = simple_moveit_wrapper;
+using namespace arf;
 using MoveitPlan = moveit::planning_interface::MoveGroupInterface::Plan;
 
 class Rviz
@@ -44,7 +45,7 @@ class Rviz
         visual_tools_->deleteAllMarkers();
         visual_tools_->trigger();
     }
-    void animatePath(RedundantRobot& robot, std::vector<JointPose> path)
+    void animatePath(smw::Robot& robot, std::vector<JointPose> path)
     {
         for (auto q : path)
         {
@@ -196,7 +197,7 @@ std::vector<TrajectoryPoint> createLine(const Eigen::Affine3d start_pose, const 
     return line;
 }
 
-void addApproachPath(std::vector<JointPose>& joint_trajectory, RedundantRobot& robot)
+void addApproachPath(std::vector<JointPose>& joint_trajectory, smw::Robot& robot)
 {
     ROS_INFO_STREAM("Calculating approach path.");
     Eigen::Affine3d pose = robot.fk(joint_trajectory[0]);
@@ -214,7 +215,7 @@ void addApproachPath(std::vector<JointPose>& joint_trajectory, RedundantRobot& r
     joint_trajectory.insert(joint_trajectory.begin(), jp.begin(), jp.end());
 }
 
-void addRetractPath(std::vector<JointPose>& joint_trajectory, RedundantRobot& robot)
+void addRetractPath(std::vector<JointPose>& joint_trajectory, smw::Robot& robot)
 {
     ROS_INFO_STREAM("Calculating retract path.");
     Eigen::Affine3d pose = robot.fk(joint_trajectory.back());
@@ -230,7 +231,7 @@ void addRetractPath(std::vector<JointPose>& joint_trajectory, RedundantRobot& ro
     joint_trajectory.insert(joint_trajectory.end(), jp.begin(), jp.end());
 }
 
-WeldingTaskSolution planWeld(RedundantRobot robot, std::vector<TrajectoryPoint> ee_trajectory)
+WeldingTaskSolution planWeld(smw::Robot& robot, std::vector<TrajectoryPoint> ee_trajectory)
 {
     WeldingTaskSolution solution;
     Planner planner;
@@ -268,32 +269,32 @@ void addPlans(MoveitPlan& plan_a, MoveitPlan& plan_b)
     }
 }
 
-std::vector<JointPose> planPTP(std::vector<double> start, std::vector<double> goal, ros::NodeHandle& node_handle)
-{
-    ros::ServiceClient client = node_handle.serviceClient<arf_demo::TrajOptPlanningServer>("trajopt_planning_server");
-    arf_demo::TrajOptPlanningServer srv;
+// std::vector<JointPose> planPTP(std::vector<double> start, std::vector<double> goal, ros::NodeHandle& node_handle)
+// {
+//     ros::ServiceClient client = node_handle.serviceClient<arf_demo::TrajOptPlanningServer>("trajopt_planning_server");
+//     arf_demo::TrajOptPlanningServer srv;
 
-    srv.request.start = start;
-    srv.request.goal = goal;
-    srv.request.num_path_points = 20;
-    srv.request.type = "joint_goal";
+//     srv.request.start = start;
+//     srv.request.goal = goal;
+//     srv.request.num_path_points = 20;
+//     srv.request.type = "joint_goal";
 
-    if (client.call(srv))
-    {
-        ROS_INFO_STREAM("Result of planning request: " << std::to_string(srv.response.success));
-        ROS_INFO_STREAM(srv.response);
-    }
-    else
-    {
-        ROS_ERROR("Failed to call service trajopt_planning_server");
-    }
-    std::vector<JointPose> solution;
-    for (auto pt : srv.response.trajectory)
-    {
-        solution.push_back(pt.positions);
-    }
-    return solution;
-}
+//     if (client.call(srv))
+//     {
+//         ROS_INFO_STREAM("Result of planning request: " << std::to_string(srv.response.success));
+//         ROS_INFO_STREAM(srv.response);
+//     }
+//     else
+//     {
+//         ROS_ERROR("Failed to call service trajopt_planning_server");
+//     }
+//     std::vector<JointPose> solution;
+//     for (auto pt : srv.response.trajectory)
+//     {
+//         solution.push_back(pt.positions);
+//     }
+//     return solution;
+// }
 
 int main(int argc, char** argv)
 {
@@ -322,13 +323,13 @@ int main(int argc, char** argv)
 
     moveit::planning_interface::MoveGroupInterface table("rotation_table");
     robot_state::RobotState table_state(*table.getCurrentState());
-    const Eigen::Affine3d wobj_frame = table_state.getGlobalLinkTransform("wobj");
+    const Eigen::Affine3d wobj_frame = table_state.getGlobalLinkTransform("work");
     ROS_INFO_STREAM("===================================");
     ROS_INFO_STREAM("Work object frame: " << wobj_frame.translation().transpose());
     const Eigen::Vector3d offset = wobj_frame.translation();
 
 
-    RedundantRobot robot;
+    smw::IndustrialRobot robot("manipulator", "tool_tip");
     Rviz rviz;
     rviz.clear();
 
@@ -346,34 +347,34 @@ int main(int argc, char** argv)
     }
 
     // animate cartesian trajectories that where planned
-    // for (auto solution : solutions)
-    // {
-    //     ROS_INFO("Planner %s", solution.success ? "SUCCESS" : "FAILED");
-    //     if (solution.success) rviz.animatePath(robot, solution.joint_trajectory);
-    // }
+    for (auto solution : solutions)
+    {
+        ROS_INFO("Planner %s", solution.success ? "SUCCESS" : "FAILED");
+        if (solution.success) rviz.animatePath(robot, solution.joint_trajectory);
+    }
 
-    std::vector<std::vector<JointPose>> in_between_sols;
-    // plan from home to start
-    std::vector<double> zeros = {0, 0, -1.5708, 1.5708, 0, 0, 0};
-    auto ptp_sol_1 = planPTP(zeros, solutions[0].joint_trajectory.front(), node_handle);
-    in_between_sols.push_back(ptp_sol_1);
+    // std::vector<std::vector<JointPose>> in_between_sols;
+    // // plan from home to start
+    // std::vector<double> zeros = {0, 0, -1.5708, 1.5708, 0, 0, 0};
+    // auto ptp_sol_1 = planPTP(zeros, solutions[0].joint_trajectory.front(), node_handle);
+    // in_between_sols.push_back(ptp_sol_1);
 
 
-    auto ptp_sol_2 = planPTP(
-        solutions[0].joint_trajectory.back(),
-        solutions[1].joint_trajectory[0],
-        node_handle);
-    in_between_sols.push_back(ptp_sol_2);
+    // auto ptp_sol_2 = planPTP(
+    //     solutions[0].joint_trajectory.back(),
+    //     solutions[1].joint_trajectory[0],
+    //     node_handle);
+    // in_between_sols.push_back(ptp_sol_2);
 
-    auto ptp_sol_3 = planPTP(
-        solutions[1].joint_trajectory.back(),
-        solutions[2].joint_trajectory[0],
-        node_handle);
-    in_between_sols.push_back(ptp_sol_3);
+    // auto ptp_sol_3 = planPTP(
+    //     solutions[1].joint_trajectory.back(),
+    //     solutions[2].joint_trajectory[0],
+    //     node_handle);
+    // in_between_sols.push_back(ptp_sol_3);
 
-    // plan to home
-    auto ptp_sol_4 = planPTP(solutions[2].joint_trajectory.back(), zeros, node_handle);
-    in_between_sols.push_back(ptp_sol_4);
+    // // plan to home
+    // auto ptp_sol_4 = planPTP(solutions[2].joint_trajectory.back(), zeros, node_handle);
+    // in_between_sols.push_back(ptp_sol_4);
 
     // for (int i = 1; i < solutions.size(); ++i)
     // {
@@ -392,12 +393,12 @@ int main(int argc, char** argv)
     //     } 
     // }
 
-    for (int i = 0; i < 3; ++i)
-    {
-        rviz.animatePath(robot, in_between_sols[i]);
-        rviz.animatePath(robot, solutions[i].joint_trajectory);
-    }
-    rviz.animatePath(robot, in_between_sols.back());
+    // for (int i = 0; i < 3; ++i)
+    // {
+    //     rviz.animatePath(robot, in_between_sols[i]);
+    //     rviz.animatePath(robot, solutions[i].joint_trajectory);
+    // }
+    // rviz.animatePath(robot, in_between_sols.back());
  
     // ======================================================================================
 

@@ -1,4 +1,6 @@
 <launch>
     <rosparam command="load" file="$(find arf_demo)/config/task.yaml"/>
+    <!-- <rosparam command="load" file="$(find kuka_kr5_support)/config/opw_kinematics_kr5.yaml"/> -->
+
     <node name="demo2" type="demo2" pkg="arf_demo" output="screen"/>
 </launch>
