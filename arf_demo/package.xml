@@ -56,6 +56,8 @@
   <build_depend>message_generation</build_depend>
   <exec_depend>message_runtime</exec_depend>
 
+  <depend>simple_moveit_wrapper</depend>
+
 
   <!-- The export tag contains other, unspecified, tags -->
   <export>

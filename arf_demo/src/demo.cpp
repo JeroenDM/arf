@@ -4,12 +4,13 @@
 
 #include <moveit_visual_tools/moveit_visual_tools.h>
 
-#include "arf_moveit_wrapper/moveit_wrapper.h"
+#include <simple_moveit_wrapper/industrial_robot.h>
 #include "arf_trajectory/trajectory.h"
 #include "arf_graph/graph.h"
 #include "arf_graph/util.h"
 
 namespace rvt = rviz_visual_tools;
+namespace smw = simple_moveit_wrapper;
 
 class Rviz
 {
@@ -33,9 +34,9 @@ class Demo1
 
 public:
   void createAndShowTrajectory(Rviz& rviz);
-  void createGraphData(arf::Robot& robot);
-  void calculateShortestPath(arf::Robot& robot);
-  void showShortestPath(arf::Robot& robot, Rviz& rviz);
+  void createGraphData(smw::Robot& robot);
+  void calculateShortestPath(smw::Robot& robot);
+  void showShortestPath(smw::Robot& robot, Rviz& rviz);
 };
 
 std::vector<arf::TrajectoryPoint> createPath();
@@ -47,7 +48,8 @@ int main(int argc, char** argv)
   ros::AsyncSpinner spinner(2);
   spinner.start();
 
-  arf::Robot robot;
+  // arf::Robot robot;
+  smw::IndustrialRobot robot;
   Rviz rviz;
   Demo1 demo1;
   demo1.createAndShowTrajectory(rviz);
@@ -113,7 +115,7 @@ void Demo1::createAndShowTrajectory(Rviz& rviz)
   }
 }
 
-void Demo1::createGraphData(arf::Robot& robot)
+void Demo1::createGraphData(smw::Robot& robot)
 {
   for (auto tp : ee_trajectory_)
   {
@@ -122,7 +124,7 @@ void Demo1::createGraphData(arf::Robot& robot)
     {
       for (auto q_sol : robot.ik(pose))
       {
-        if (!robot.isInCollision(q_sol))
+        if (!robot.isColliding(q_sol))
           new_data.push_back(q_sol);
       }
     }
@@ -130,7 +132,7 @@ void Demo1::createGraphData(arf::Robot& robot)
   }
 }
 
-void Demo1::calculateShortestPath(arf::Robot& robot)
+void Demo1::calculateShortestPath(smw::Robot& robot)
 {
   arf::Graph demo_graph(graph_data_);
   demo_graph.runMultiSourceDijkstra();
@@ -143,7 +145,7 @@ void Demo1::calculateShortestPath(arf::Robot& robot)
   }
 }
 
-void Demo1::showShortestPath(arf::Robot& robot, Rviz& rviz)
+void Demo1::showShortestPath(smw::Robot& robot, Rviz& rviz)
 {
   for (auto q : shortest_path_)
   {

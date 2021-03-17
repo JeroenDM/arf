@@ -6,13 +6,16 @@
 #include <string>
 #include <vector>
 
+#include <simple_moveit_wrapper/industrial_robot.h>
+
 #include "arf_graph/graph.h"
 #include "arf_graph/util.h"
-#include "arf_moveit_wrapper/moveit_wrapper.h"
 #include "arf_trajectory/trajectory.h"
 #include "ros/package.h"
 
 #include "util.h"
+
+namespace smw = simple_moveit_wrapper;
 
 namespace arf
 {
@@ -26,11 +29,11 @@ class Demo1
 public:
   double last_path_cost_;
   void createTrajectory();
-  void createGraphData(Robot& robot, Rviz& rviz);
-  void calculateShortestPath(Robot& robot);
-  void showShortestPath(Robot& robot, Rviz& rviz);
-  void orientationFreeSampling(Robot& robot, int num_samples);
-  void sampleNearSolution(Robot& robot, Rviz& rviz, double dist, int n);
+  void createGraphData(smw::Robot& robot, Rviz& rviz);
+  void calculateShortestPath(smw::Robot& robot);
+  void showShortestPath(smw::Robot& robot, Rviz& rviz);
+  void orientationFreeSampling(smw::Robot& robot, int num_samples);
+  void sampleNearSolution(smw::Robot& robot, Rviz& rviz, double dist, int n);
   void showTrajectory(Rviz& rviz);
   void readTaskFromYaml(const std::string filename);
   void readTask1(ros::NodeHandle& nh);
@@ -56,7 +59,7 @@ void showResults(std::vector<std::chrono::duration<double>>& times, std::vector<
   }
 }
 
-void run_case(Demo1& demo1, Robot& robot, Rviz& rviz, int num_samples, std::ofstream& file, int run_index)
+void run_case(Demo1& demo1, smw::Robot& robot, Rviz& rviz, int num_samples, std::ofstream& file, int run_index)
 {
   ROS_INFO_STREAM("Started running planning case 1");
   // parameters
@@ -107,7 +110,7 @@ void run_case(Demo1& demo1, Robot& robot, Rviz& rviz, int num_samples, std::ofst
   }
 }
 
-void run_multiple_cases(Demo1& demo, Robot& robot, Rviz& rviz, std::vector<int> num_samples, int num_runs)
+void run_multiple_cases(Demo1& demo, smw::Robot& robot, Rviz& rviz, std::vector<int> num_samples, int num_runs)
 {
   std::string header = "run,iteration,samples,cost,time";
   std::string filename = ros::package::getPath("arf_demo") + "/data/results_case_1_bis.csv";
@@ -136,7 +139,7 @@ void run_multiple_cases(Demo1& demo, Robot& robot, Rviz& rviz, std::vector<int> 
   data_file.close();
 }
 
-void single_run(Demo1& demo1, Robot& robot, Rviz& rviz, int num_samples, std::ofstream& file, int run_index)
+void single_run(Demo1& demo1, smw::Robot& robot, Rviz& rviz, int num_samples, std::ofstream& file, int run_index)
 {
   ROS_INFO_STREAM("Started running single run, " << num_samples << " samples.");
 
@@ -164,7 +167,7 @@ void single_run(Demo1& demo1, Robot& robot, Rviz& rviz, int num_samples, std::of
   }
 }
 
-void run_multiple_cases_single_run(Demo1& demo, Robot& robot, Rviz& rviz, std::vector<int> num_samples, int num_runs)
+void run_multiple_cases_single_run(Demo1& demo, smw::Robot& robot, Rviz& rviz, std::vector<int> num_samples, int num_runs)
 {
   std::string header = "run,samples,cost,time";
   std::string filename = ros::package::getPath("arf_demo") + "/data/results_case_1_single_run.csv";
@@ -202,7 +205,7 @@ int main(int argc, char** argv)
   ros::AsyncSpinner spinner(1);
   spinner.start();
 
-  arf::Robot robot;
+  smw::IndustrialRobot robot;
   Rviz rviz;
   arf::Demo1 demo1;
 
@@ -217,7 +220,9 @@ int main(int argc, char** argv)
   robot.plot(rviz.visual_tools_, home);
 
   std::vector<int> num_samples = { 300, 600, 900 };
-  run_multiple_cases(demo1, robot, rviz, num_samples, 10);
+  // run_multiple_cases(demo1, robot, rviz, num_samples, 10);
+  std::ofstream file("test.csv");
+  single_run(demo1, robot, rviz, 300, file, 1);
 
   // std::vector<int> num_samples = {300, 600, 900, 1200, 1800, 2500, 3000, 3600};
   // run_multiple_cases_single_run(demo1, robot, rviz, num_samples, 10);
@@ -371,7 +376,7 @@ void Demo1::readTaskFromYaml(const std::string filename)
   }
 }
 
-void Demo1::createGraphData(Robot& robot, Rviz& rviz)
+void Demo1::createGraphData(smw::Robot& robot, Rviz& rviz)
 {
   for (auto tp : ee_trajectory_)
   {
@@ -381,7 +386,7 @@ void Demo1::createGraphData(Robot& robot, Rviz& rviz)
       rviz.plotPose(pose);
       for (auto q_sol : robot.ik(pose))
       {
-        if (!robot.isInCollision(q_sol))
+        if (!robot.isColliding(q_sol))
           new_data.push_back(q_sol);
       }
     }
@@ -389,7 +394,7 @@ void Demo1::createGraphData(Robot& robot, Rviz& rviz)
   }
 }
 
-void Demo1::orientationFreeSampling(Robot& robot, int num_samples = 500)
+void Demo1::orientationFreeSampling(smw::Robot& robot, int num_samples = 500)
 {
   std::cout << "Trajectory length: " << ee_trajectory_2_.size() << std::endl;
   graph_data_.clear();
@@ -401,7 +406,7 @@ void Demo1::orientationFreeSampling(Robot& robot, int num_samples = 500)
     {
       for (auto q_sol : robot.ik(pose))
       {
-        if (!robot.isInCollision(q_sol))
+        if (!robot.isColliding(q_sol))
           new_data.push_back(q_sol);
       }
     }
@@ -409,7 +414,7 @@ void Demo1::orientationFreeSampling(Robot& robot, int num_samples = 500)
   }
 }
 
-void Demo1::sampleNearSolution(Robot& robot, Rviz& rviz, double dist, int n = 500)
+void Demo1::sampleNearSolution(smw::Robot& robot, Rviz& rviz, double dist, int n = 500)
 {
   if (shortest_path_.size() < 1)
   {
@@ -429,7 +434,7 @@ void Demo1::sampleNearSolution(Robot& robot, Rviz& rviz, double dist, int n = 50
       // rviz.plotPose(pose);
       for (auto q_sol : robot.ik(pose))
       {
-        if (!robot.isInCollision(q_sol))
+        if (!robot.isColliding(q_sol))
           new_data.push_back(q_sol);
       }
     }
@@ -437,7 +442,7 @@ void Demo1::sampleNearSolution(Robot& robot, Rviz& rviz, double dist, int n = 50
   }
 }
 
-void Demo1::calculateShortestPath(Robot& robot)
+void Demo1::calculateShortestPath(smw::Robot& robot)
 {
   Graph demo_graph(graph_data_);
   demo_graph.runMultiSourceDijkstra();
@@ -454,7 +459,7 @@ void Demo1::calculateShortestPath(Robot& robot)
   last_path_cost_ = demo_graph.last_path_cost;
 }
 
-void Demo1::showShortestPath(Robot& robot, Rviz& rviz)
+void Demo1::showShortestPath(smw::Robot& robot, Rviz& rviz)
 {
   for (auto q : shortest_path_)
   {
